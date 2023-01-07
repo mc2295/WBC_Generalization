@@ -1,0 +1,93 @@
+# lbl2files = {l: [f for f in files if label_func(f,dataframe_saint_antoine) == l] for l in list_labels}
+
+# filehandler = open('codes/variables/saint_antoine_lbl2files.obj', 'wb')
+# pickle.dump(lbl2files, filehandler)
+# lbl2files = pickle.load()
+
+# dic_classes = {
+#     'ARTEFACT_0': 'artefact',
+#     'ARTEFACT_0': 'artefact',
+#     'ARTEFACTS_0': 'artefact',
+#     'ARTEFACTS_1': 'artefact',
+#     'ARTEFACTS_Platelets0': 'platelet',
+#     'ARTEFACTS_Smudge cells0': 'smudge cell',
+#     'BASOPHILES_0': 'basophil',
+#     'BLASTES_0': 'blast',
+#     'BLASTES_1': 'blast',
+#     'EOSINOPHILES_0': 'eosinophil',
+#     'ERYTHROBLASTES_0': 'erythroblast',
+#     'LYMPHOCYTES_0': 'lymphocyte',
+#     'LYMPHOCYTES_1': 'lymphocyte',
+#     'LYMPHOCYTES_2': 'lymphocyte',
+#     'LYMPHOCYTES_3': 'lymphocyte',
+#     'LYMPHOCYTES_4': 'lymphocyte',
+#     'METAMYELOCYTES_0': 'metamyelocyte',
+#     'MONOCYTES_0': 'monocyte',
+#     'MYELOCYTES_0': 'myelocyte',
+#     'NEUTROPHILES_0': 'neutrophil',
+#     'NEUTROPHILES_1': 'neutrophil',
+#     'PLASMOCYTES_0': 'plasmocyte',
+#     'PROMYELOCYTES_0': 'promyelocyte',
+#     'ABE' : 'eosinophil',
+#     'ART' : 'artefact',
+#     'BAS' : 'basophil',
+#     'BLA' : 'blast',
+#     'EBO' : 'erythroblast',
+#     'EOS' : 'eosinophil',
+#     'FGC' : 'faggott cell',
+#     'HAC' : 'hairy cell',
+#     'KSC' : 'smudge cell',
+#     'LYI' : 'lymphocyte',
+#     'LYT' : 'lymphocyte',
+#     'MMZ' :  'metamyelocyte',
+#     'NGB' : 'neutrophil',
+#     'NGS' : 'neutrophil',
+#     'NIF' :  'not identifiable',
+#     'OTH' : 'other cell',
+#     'PEB' :  'proerythroblast',
+#     'PLM' : 'plasma cell',
+#     'PMO' :  'promyelocyte'
+# }
+
+
+#### split train/valid method 1
+
+# class SiameseDataset(torch.utils.data.Dataset):
+#     def __init__(self, files, is_valid=False):
+#         self.files,self.is_valid = files,is_valid
+#         if is_valid: self.files2 = [self._draw(f) for f in files]
+
+#     def __getitem__(self, i):
+#         file1 = self.files[i]
+#         (file2,same) = self.files2[i] if self.is_valid else self._draw(file1)
+#         img1,img2 = open_image(file1),open_image(file2)
+#         return (img1, img2, torch.Tensor([same]).squeeze())
+
+#     def __len__(self): return len(self.files)
+
+#     def _draw(self, f):
+#         same = random.random() < 0.5
+#         cls = label_func(f, dataframe_saint_antoine)
+#         if not same: cls = random.choice([l for l in list_labels if l != cls])
+#         return random.choice(lbl2files[cls]),same
+
+
+# idxs = np.random.permutation(range(len(files)))
+# cut = int(0.8 * len(files))
+
+# train_files = array_files[idxs[:cut]]
+# valid_files = array_files[idxs[cut:]]
+
+# train_ds = SiameseDataset(train_files)
+# valid_ds = SiameseDataset(valid_files, is_valid=True)
+# dls_1 = DataLoaders.from_dsets(train_ds, valid_ds)
+# dls_1.cuda()splbl2files
+
+# train_dataloader = torch.utils.data.DataLoader(train_ds, batch_size=64, shuffle=True)
+# valid_dataloader = torch.utils.data.DataLoader(valid_ds, batch_size=64, shuffle=True)
+
+
+
+
+# splits = RandomSplitter(valid_pct = 0.2, seed = 42)(array_files)
+# tfm = SiameseTransform(array_files, splits)
