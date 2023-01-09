@@ -61,7 +61,7 @@ class SiameseModel_gregoire(Module):
         out = nn.Sigmoid()(out)
         return out
 
-class SiameseModel_encoder_head(Module):
+class SiameseModel(Module):
 
     def __init__(self, encoder, head):
         super(SiameseModel_encoder_head, self).__init__()

@@ -44,13 +44,14 @@ def import_variables(source1, source2):
     lbl2files = pickle.load(file)
     return dic_classes, list_labels_cat, list_labels, dataframe_source, files, array_files, class_list, array_class, lbl2files
 
-def create_dataloader(source1, array_files):
+def create_dataloader(source1, array_files, array_class):
     file = open('references/variables/' + source1 + '_tfm.obj', 'rb')
     tfm = pickle.load(file)
     file2 = open('references/variables/' + source1 + '_splits.obj', 'rb')
     splits = pickle.load(file2)
     trains  = array_files[splits[0]]
     valids = array_files[splits[1]]
+    valids_class = array_class[splits[1]]
     # assert not [v for v in valids if v in array_files[splits[0]]]
     tls = TfmdLists(array_files, tfm, splits=splits)
     # dls = tls.dataloaders(after_item=[Resize(224), ToTensor],
@@ -58,4 +59,4 @@ def create_dataloader(source1, array_files):
     dls = tls.dataloaders(after_item=[Resize(224), ToTensor],
                         after_batch=[IntToFloatTensor], bs = 32)
     dls.cuda()
-    return trains, valids, tls, dls
+    return trains, valids, valids_class, tls, dls

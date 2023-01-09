@@ -1,6 +1,7 @@
 import numpy as np
 import torch as torch
 
+
 def treat(img, size=224):
     img = img.resize((size, size))
     t = torch.Tensor(np.array(img))
