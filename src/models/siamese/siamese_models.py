@@ -64,7 +64,7 @@ class SiameseModel_gregoire(Module):
 class SiameseModel(Module):
 
     def __init__(self, encoder, head):
-        super(SiameseModel_encoder_head, self).__init__()
+        super(SiameseModel, self).__init__()
         self.encoder,self.head = encoder,head
 
     # def forward(self, x1, x2):

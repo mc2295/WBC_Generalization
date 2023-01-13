@@ -24,7 +24,7 @@ from torch.nn import CrossEntropyLoss
 from fastai.vision.all import *
 # from dataloader import SiameseImage, SiameseTransform
 from models.siamese.siamese_models import SiameseModel_gregoire, SiameseModel
-from data.collect_variables import create_dataloader, import_variables
+from data.create_variables import create_dataloader, create_variables
 from data.siamese_image import open_image, label_func, SiameseImage, SiameseTransform
 from models.siamese.siamese_params import BCE_loss, siamese_splitter, my_accuracy, contrastive_loss
 from visualisation.check_accuracy import check_accuracy
@@ -34,8 +34,9 @@ from visualisation.clusters import scatter_plot_clusters, make_cluster
 
 
 source1, source2 = 'saint_antoine', 'Saint_Antoine'
-dic_classes, list_labels_cat, list_labels, dataframe_source, files, array_files, class_list, array_class, lbl2files = import_variables(source1, source2)
-trains, valids, valids_class, tls, dls = create_dataloader(source1, array_files, array_class)
+dic_classes, list_labels_cat, list_labels, dataframe_source, files, array_files, class_list, array_class = create_variables('references', source1, source2)
+
+trains, valids, valids_class, tls, dls = create_dataloader('references', source1, array_files, array_class,SiameseTransform, dataframe_source, list_labels_cat, list_labels)
 
 opt_func = partial(OptimWrapper, opt=optim.RMSprop)
 
@@ -51,12 +52,18 @@ opt_func = partial(OptimWrapper, opt=optim.RMSprop)
 # torch.save(learn.model, 'models/'+ source2 + '_trained/siamese/siamese_test')
 
 # print(check_accuracy(tls, learn, 200))
+training_source1, training_source2 = 'barcelona', 'Barcelona'
+siamese_number = str(1)
+model = torch.load('models/'+ training_source2 + '_trained/siamese' + siamese_number + '_stage1', map_location = 'cpu')
 
-model = torch.load('models/Saint_Antoine_trained/siamese/siamese8_stage1', map_location = 'cpu')
+# print(valids[0])
+# print(check_accuracy(tls, model, 200))
+# list = create_embeddings(99, 1, valids, model)
+# res = create_resdistance(150, 5, valids, model)
 
-# res = create_embeddings(500, 0, valids, model)
-file = open('references/variables/' + source1 + '_resdistance_si8.obj', 'rb')
+file = open('references/variables/resdistance_' + training_source1 + '_si'+ siamese_number + '_on_' + source1 + '_batch_1.obj', 'rb')
 res = pickle.load(file)
 
-# scatter_plot_clusters(res, valids_class, 500, 1)
-# make_cluster(res, 500, 1, valids, valids_class, source1)
+make_cluster(res, 500, 1, valids, valids_class, source1,training_source1)
+
+scatter_plot_clusters(res, valids_class, 500, 1)
