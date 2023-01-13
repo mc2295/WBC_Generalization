@@ -52,18 +52,18 @@ opt_func = partial(OptimWrapper, opt=optim.RMSprop)
 # torch.save(learn.model, 'models/'+ source2 + '_trained/siamese/siamese_test')
 
 # print(check_accuracy(tls, learn, 200))
-training_source1, training_source2 = 'barcelona', 'Barcelona'
-siamese_number = str(1)
+training_source1, training_source2 = 'saint_antoine', 'Saint_Antoine'
+siamese_number = str(8)
 model = torch.load('models/'+ training_source2 + '_trained/siamese' + siamese_number + '_stage1', map_location = 'cpu')
 
 # print(valids[0])
 # print(check_accuracy(tls, model, 200))
 # list = create_embeddings(99, 1, valids, model)
-# res = create_resdistance(150, 5, valids, model)
+res = create_resdistance(150, 5, valids, model)
 
-file = open('references/variables/resdistance_' + training_source1 + '_si'+ siamese_number + '_on_' + source1 + '_batch_1.obj', 'rb')
-res = pickle.load(file)
+# file = open('references/variables/resdistance_' + training_source1 + '_si'+ siamese_number + '_on_' + source1 + '_batch_1.obj', 'rb')
+# res = pickle.load(file)
 
-make_cluster(res, 500, 1, valids, valids_class, source1,training_source1)
+# make_cluster(res, 500, 1, valids, valids_class, source1,training_source1)
 
-scatter_plot_clusters(res, valids_class, 500, 1)
+scatter_plot_clusters(res, valids_class, 150, 5, source1, training_source1, siamese_number)

@@ -40,8 +40,8 @@ def make_cluster(res, Nimages, batch, valids, valids_class, source1, training_so
         newWall = makeWall(allIm[indiceCluster[i]], source1, valids_class[indiceCluster[i]+Nimages*(batch-1)], order)
         plt.imsave(arr= newWall, fname = 'reports/' + source1 + "_walls/" + training_source + "_training/batch_"+ str(batch)+ "/cluster" + str(i) + ".png")
 
-def scatter_plot_clusters(res, valids_class, Nimages, batch):
+def scatter_plot_clusters(res, valids_class, Nimages, batch, source1, training_source1, siamese_number):
     X_pca_2 = decomposition.TruncatedSVD(n_components=2).fit_transform(res)
     fig, ax = flameplot.scatter(X_pca_2[:,0], X_pca_2[:,1], labels=valids_class[Nimages*(batch-1):Nimages*batch], title='PCA', density=False)
-    # fig.savefig('reports/barcelona_si1_on_saint_antoine_batch_1.png')
+    fig.savefig('reports/' + training_source1 + '_si '+ siamese_number + ' _on_'+ source1 + '_batch_1.png')
     plt.show()
