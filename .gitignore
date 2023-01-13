@@ -1,3 +1,12 @@
 models/Saint_Antoine_trained/siamese/siamese8_stage1
 references/variables/saint_antoine_embeddings_si8.obj
 models/Barcelona_trained/siamese1_stage1
+reports/saint_antoine_walls/saint_antoine_training/batch_5/cluster0.png
+reports/saint_antoine_walls/saint_antoine_training/batch_5/cluster1.png
+reports/saint_antoine_walls/saint_antoine_training/batch_5/cluster2.png
+reports/saint_antoine_walls/saint_antoine_training/batch_5/cluster3.png
+reports/saint_antoine_walls/saint_antoine_training/batch_5/cluster4.png
+reports/saint_antoine_walls/saint_antoine_training/batch_5/cluster5.png
+reports/saint_antoine_walls/saint_antoine_training/batch_5/cluster6.png
+reports/saint_antoine_walls/saint_antoine_training/batch_5/cluster7.png
+models/Saint_Antoine_trained/siamese8_stage1
