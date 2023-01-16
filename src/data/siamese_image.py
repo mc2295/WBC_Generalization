@@ -8,8 +8,8 @@ def open_image(fname, size=224):
     return t.permute(2,0,1).float()/255.0
 
 
-def label_func(image_path, df, list_labels_cat):
-    return list.index(list_labels_cat, df[df['image_path'] == image_path]['image_class'].iloc[0])
+def label_func(image_path, dic_labels, list_labels_cat):
+    return list.index(list_labels_cat, dic_labels[image_path])
 
 class SiameseImage(fastuple):
     def show(self, ctx=None, **kwargs):
@@ -27,11 +27,11 @@ class SiameseImage(fastuple):
         return show_image(torch.cat([t1,line,t2], dim=2), title=similarity, ctx=ctx, **kwargs)
 
 class SiameseTransform(Transform):
-    def __init__(self, files, splits, dataframe_source, list_labels_cat, list_labels):
-        self.dataframe_source = dataframe_source
+    def __init__(self, files, splits, dic_labels, list_labels_cat, list_labels):
+        self.dic_labels = dic_labels
         self.list_labels_cat = list_labels_cat
         self.list_labels = list_labels
-        self.splbl2files = [{l: [f for f in files[splits[i]] if label_func(f, dataframe_source, list_labels_cat) == l] for l in list_labels}
+        self.splbl2files = [{l: [f for f in files[splits[i]] if label_func(f, dic_labels, list_labels_cat) == l] for l in list_labels}
                           for i in range(2)]
         self.valid = {f: self._draw(f,1) for f in files[splits[1]]}
         self.train = {f: self._draw(f,1) for f in files[splits[0]]}
@@ -42,7 +42,7 @@ class SiameseTransform(Transform):
 
     def _draw(self, f, split=0):
         same = random.random() < 0.5
-        cls = label_func(f, self.dataframe_source, self.list_labels_cat)
+        cls = label_func(f, self.dic_labels, self.list_labels_cat)
         if not same: cls = random.choice(L(l for l in self.list_labels if l != cls))
         return random.choice(self.splbl2files[split][cls]),same
 
