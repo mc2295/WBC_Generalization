@@ -40,6 +40,8 @@
 #     'LYI' : 'lymphocyte',
 #     'LYT' : 'lymphocyte',
 #     'MMZ' :  'metamyelocyte',
+#     'MON' : 'monocyte',
+#     'MYB' : 'myelocyte',
 #     'NGB' : 'neutrophil',
 #     'NGS' : 'neutrophil',
 #     'NIF' :  'not identifiable',

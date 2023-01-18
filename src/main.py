@@ -40,14 +40,14 @@ trains, valids, valids_class, tls, dls = create_dataloader(array_files, array_cl
 
 opt_func = partial(OptimWrapper, opt=optim.RMSprop)
 
-encoder = create_body(xresnet101(), cut=-4)
-head = create_head(512*4, 1, ps=0.5)
+# encoder = create_body(xresnet101(), cut=-4)
+# head = create_head(512*4, 1, ps=0.5)
 
-model = SiameseModel(encoder, head)
+# model = SiameseModel(encoder, head)
 
-learn = Learner(dls, model, opt_func = opt_func, loss_func=BCE_loss, splitter=siamese_splitter, metrics=my_accuracy)
+# learn = Learner(dls, model, opt_func = opt_func, loss_func=BCE_loss, splitter=siamese_splitter, metrics=my_accuracy)
 
-learn.fit_one_cycle(1, slice(1e-6,1e-4))
+# learn.fit_one_cycle(1, slice(1e-6,1e-4))
 
 # torch.save(learn.model, 'models/'+ source2 + '_trained/siamese/siamese_test')
 
