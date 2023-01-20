@@ -28,3 +28,4 @@ reports/matek_walls/matek_training/batch_1/cluster5.png
 reports/matek_walls/matek_training/batch_1/cluster6.png
 reports/matek_walls/matek_training/batch_1/cluster7.png
 models/Saint_Antoine_trained/siamese9_stage1
+src/data/__pycache__/create_variables.cpython-310.pyc

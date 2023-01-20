@@ -41,7 +41,7 @@ trains, valids, valids_class, tls, dls = create_dataloader(array_files, array_cl
 opt_func = partial(OptimWrapper, opt=optim.RMSprop)
 
 encoder = create_body(xresnet101(), cut=-4)
-head = create_head(512*4, 1, ps=0.5)
+head = create_head(128, 1, ps=0.5)[2:]
 
 model = SiameseModel(encoder, head)
 
