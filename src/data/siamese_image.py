@@ -30,7 +30,7 @@ class SiameseTransform(Transform):
     def __init__(self, files, splits, dic_labels, list_labels_cat):
         self.dic_labels = dic_labels
         self.list_labels_cat = list_labels_cat
-        self.splbl2files = [{l: [f for f in files[splits[i]] if label_func(f, dic_labels, ) == l] for l in list_labels_cat}
+        self.splbl2files = [{l: [f for f in files[splits[i]] if label_func(f, dic_labels) == l] for l in list_labels_cat}
                           for i in range(2)]
         self.valid = {f: self._draw(f,1) for f in files[splits[1]]}
         self.train = {f: self._draw(f,1) for f in files[splits[0]]}

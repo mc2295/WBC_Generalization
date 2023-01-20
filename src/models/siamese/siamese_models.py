@@ -95,7 +95,7 @@ class SiameseModel(Module):
 
     def similarity(self, x1, x2):
 #         x = F.pairwise_distance(x1, x2, keepdim = True)
-        x = torch.abs(x1 - x2)        
+        x = torch.abs(x1 - x2)
         x = self.head(x)
         x = nn.Sigmoid()(x)
         return x

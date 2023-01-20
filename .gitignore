@@ -31,3 +31,11 @@ models/Saint_Antoine_trained/siamese9_stage1
 src/data/__pycache__/create_variables.cpython-310.pyc
 src/data/__pycache__/create_variables.cpython-310.pyc
 src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
+models/barcelona_trained/siamese1_stage1
+models/barcelona_trained/siamese3_stage1
+models/matek_trained/siamese6_stage1
+models/mixed_sources_trained/barcelona_saint_antoine/siamese1
+models/saint_antoine_trained/siamese8_stage1
+models/saint_antoine_trained/siamese9_stage1
+references/variables/barcelona_embedding_trains.obj
+references/variables/barcelona_embedding_valids.obj

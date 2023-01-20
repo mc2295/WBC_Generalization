@@ -28,7 +28,7 @@ from data.create_variables import create_dataloader, create_variables
 from data.siamese_image import open_image, label_func, SiameseImage, SiameseTransform
 from models.siamese.siamese_params import BCE_loss, siamese_splitter, my_accuracy, contrastive_loss
 from visualisation.check_accuracy import check_accuracy
-from visualisation.make_embeddings import create_resdistance, create_embeddings
+from visualisation.make_embeddings import create_resdistance, create_embeddings, import_embeddings
 from visualisation.clusters import scatter_plot_clusters, make_cluster
 # from nbdev import show_doc
 
@@ -36,28 +36,38 @@ from visualisation.clusters import scatter_plot_clusters, make_cluster
 source = ['barcelona', 'saint_antoine', 'matek']
 array_files, array_class, splits, dic_labels, list_labels_cat = create_variables('references', source)
 
-trains, valids, valids_class, tls, dls = create_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, SiameseTransform, 8)
+# trains, valids, valids_class, tls, dls = create_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, SiameseTransform, 8)
 
-opt_func = partial(OptimWrapper, opt=optim.RMSprop)
+# opt_func = partial(OptimWrapper, opt=optim.RMSprop)
 
-encoder = create_body(xresnet101(), cut=-4)
-head = create_head(128, 1, ps=0.5)[2:]
+# encoder = create_body(xresnet101(), cut=-4)
+# head = create_head(128, 1, ps=0.5)[2:]
 
-model = SiameseModel(encoder, head)
+# model = SiameseModel(encoder, head)
 
-learn = Learner(dls, model, opt_func = opt_func, loss_func=BCE_loss, splitter=siamese_splitter, metrics=my_accuracy)
+# learn = Learner(dls, model, opt_func = opt_func, loss_func=BCE_loss, splitter=siamese_splitter, metrics=my_accuracy)
 
-learn.fit_one_cycle(1, slice(1e-6,1e-4))
+# learn.fit_one_cycle(1, slice(1e-6,1e-4))
 
 # torch.save(learn.model, 'models/'+ source2 + '_trained/siamese/siamese_test')
 
 # print(check_accuracy(dls, model))
-# training_source1, training_source2 = 'saint_antoine', 'Saint_Antoine'
+# training_source1, training_source2 = 'saint_antoine'
 # siamese_number = str(8)
 # model = torch.load('models/'+ training_source2 + '_trained/siamese' + siamese_number + '_stage1', map_location = 'cpu')
 
-# print(valids[0])
-# print(check_accuracy(tls, model, 200))
+model = torch.load('models/barcelona_trained/siamese3_stage1', map_location = 'cpu')
+
+
+# print(check_accuracy(dls, model, 200))
+
+embedding_trains, embedding_valids, targ_trains, targ_valids = import_embeddings(source[0])
+X = torch.cat((embedding_trains, embedding_valids))
+y = torch.cat((targ_trains, targ_valids))
+
+scatter_plot_clusters(X, y, 'LDA')
+
+
 # list = create_embeddings(99, 1, valids, model)
 # res = create_resdistance(150, 5, valids, model)
 

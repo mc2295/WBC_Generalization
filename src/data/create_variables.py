@@ -8,7 +8,6 @@ import os as os
 def create_df(reference_path, source_df, list_labels_cat):
     file = open(reference_path + '/variables/dic_classes.obj', 'rb')
     dic_classes = pickle.load(file)
-
     dataframe = pd.read_csv(reference_path + '/variables/dataframes/df_labeled_images.csv')
     source_mask = dataframe.image_dataset.isin(source_df)
     dataframe = dataframe.loc[source_mask,['image_path', 'image_class']]

@@ -51,7 +51,7 @@
 #     'band_neutrophil' : 'neutrophil',
 #     'segmented_neutrophil' : 'neutrophil',
 #     'neutrophil' : 'neutrophil',
-#     'basophil':'baophil',
+#     'basophil':'basophil',
 #     'eosinophil' : 'eosinophil',
 #     'monocyte': 'monocyte',
 #     'erythroblast' : 'erythroblast',
