@@ -33,21 +33,21 @@ from visualisation.clusters import scatter_plot_clusters, make_cluster
 # from nbdev import show_doc
 
 
-source1, source2 = ['barcelona', 'saint_antoine'], ['Barcelona', 'Saint_Antoine']
-dic_classes, list_labels_cat, list_labels, dataframe_source, array_files, array_class, splits, dic_labels = create_variables('references', source1, source2)
+source = ['barcelona', 'saint_antoine', 'matek']
+array_files, array_class, splits, dic_labels, list_labels_cat = create_variables('references', source)
 
-trains, valids, valids_class, tls, dls = create_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, list_labels, SiameseTransform, 32)
+trains, valids, valids_class, tls, dls = create_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, SiameseTransform, 8)
 
 opt_func = partial(OptimWrapper, opt=optim.RMSprop)
 
-# encoder = create_body(xresnet101(), cut=-4)
-# head = create_head(512*4, 1, ps=0.5)
+encoder = create_body(xresnet101(), cut=-4)
+head = create_head(512*4, 1, ps=0.5)
 
-# model = SiameseModel(encoder, head)
+model = SiameseModel(encoder, head)
 
-# learn = Learner(dls, model, opt_func = opt_func, loss_func=BCE_loss, splitter=siamese_splitter, metrics=my_accuracy)
+learn = Learner(dls, model, opt_func = opt_func, loss_func=BCE_loss, splitter=siamese_splitter, metrics=my_accuracy)
 
-# learn.fit_one_cycle(1, slice(1e-6,1e-4))
+learn.fit_one_cycle(1, slice(1e-6,1e-4))
 
 # torch.save(learn.model, 'models/'+ source2 + '_trained/siamese/siamese_test')
 

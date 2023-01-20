@@ -3,7 +3,6 @@
 # filehandler = open('codes/variables/saint_antoine_lbl2files.obj', 'wb')
 # pickle.dump(lbl2files, filehandler)
 # lbl2files = pickle.load()
-
 # dic_classes = {
 #     'ARTEFACT_0': 'artefact',
 #     'ARTEFACT_0': 'artefact',
@@ -48,8 +47,25 @@
 #     'OTH' : 'other cell',
 #     'PEB' :  'proerythroblast',
 #     'PLM' : 'plasma cell',
-#     'PMO' :  'promyelocyte'
+#     'PMO' :  'promyelocyte',
+#     'band_neutrophil' : 'neutrophil',
+#     'segmented_neutrophil' : 'neutrophil',
+#     'neutrophil' : 'neutrophil',
+#     'basophil':'baophil',
+#     'eosinophil' : 'eosinophil',
+#     'monocyte': 'monocyte',
+#     'erythroblast' : 'erythroblast',
+#     'lymphocyte' : 'lymphocyte',
+#     'myelocyte' : 'myelocyte',
+#     'promyelocyte' : 'promyelocyte',
+#     'metamyelocyte' : 'metamyelocyte',
+#     'immature_granulocyte' : 'immature_granulocyte',
+#     'platelet' : 'platelet'
+
 # }
+
+# file = open('references/variables/dic_classes.obj', 'wb')
+# pickle.dump(dic_classes, file)
 
 
 #### split train/valid method 1
