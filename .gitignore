@@ -39,3 +39,6 @@ models/saint_antoine_trained/siamese8_stage1
 models/saint_antoine_trained/siamese9_stage1
 references/variables/barcelona_embedding_trains.obj
 references/variables/barcelona_embedding_valids.obj
+models/mixed_sources_trained/barcelona_saint_antoine/siamese2
+src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
+src/main.py

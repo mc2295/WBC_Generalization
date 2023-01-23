@@ -28,14 +28,16 @@ from data.create_variables import create_dataloader, create_variables
 from data.siamese_image import open_image, label_func, SiameseImage, SiameseTransform
 from models.siamese.siamese_params import BCE_loss, siamese_splitter, my_accuracy, contrastive_loss
 from visualisation.check_accuracy import check_accuracy
-from visualisation.make_embeddings import create_resdistance, create_embeddings, import_embeddings
-from visualisation.clusters import scatter_plot_clusters, make_cluster
+from visualisation.make_embeddings import create_resdistance, create_embeddings, import_embeddings, project_2D
+from visualisation.clusters import scatter_plot_clusters, make_walls
+from visualisation.KNN import KNN_score, plot_correlation, plot_KNN_space
 # from nbdev import show_doc
 
 
-source = ['barcelona', 'saint_antoine', 'matek']
+source = ['barcelona']
 array_files, array_class, splits, dic_labels, list_labels_cat = create_variables('references', source)
 
+### train model
 # trains, valids, valids_class, tls, dls = create_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, SiameseTransform, 8)
 
 # opt_func = partial(OptimWrapper, opt=optim.RMSprop)
@@ -51,29 +53,29 @@ array_files, array_class, splits, dic_labels, list_labels_cat = create_variables
 
 # torch.save(learn.model, 'models/'+ source2 + '_trained/siamese/siamese_test')
 
-# print(check_accuracy(dls, model))
+
+### visualise
+
 # training_source1, training_source2 = 'saint_antoine'
 # siamese_number = str(8)
+
 # model = torch.load('models/'+ training_source2 + '_trained/siamese' + siamese_number + '_stage1', map_location = 'cpu')
 
-model = torch.load('models/barcelona_trained/siamese3_stage1', map_location = 'cpu')
-
-
-# print(check_accuracy(dls, model, 200))
+# print(check_accuracy(dls, model))
 
 embedding_trains, embedding_valids, targ_trains, targ_valids = import_embeddings(source[0])
 X = torch.cat((embedding_trains, embedding_valids))
 y = torch.cat((targ_trains, targ_valids))
 
-scatter_plot_clusters(X, y, 'LDA')
+preds_valids, KNN_accuracy = KNN_score(embedding_trains, embedding_valids, targ_trains, targ_valids)
 
+# plot_correlation(targ_valids, preds_valids, list_labels_cat)
 
-# list = create_embeddings(99, 1, valids, model)
+X_2D = project_2D(X,y,'t-SNE')
+# scatter_plot_clusters(X_2D, y, 't-SNE')
+
+plot_KNN_space(targ_trains, targ_valids, X_2D, y)
+
 # res = create_resdistance(150, 5, valids, model)
 
-# file = open('references/variables/resdistance_' + training_source1 + '_si'+ siamese_number + '_on_' + source1 + '_batch_1.obj', 'rb')
-# res = pickle.load(file)
-
-# make_cluster(res, 500, 1, valids, valids_class, source1,training_source1)
-
-# scatter_plot_clusters(res, valids_class, 150, 5, source1, training_source1, siamese_number)
+# make_walls(res, 500, 1, valids, valids_class, source1,training_source1)

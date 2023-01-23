@@ -5,6 +5,11 @@ import torch.nn as nn
 from fastai.vision.all import Learner, ImageDataLoaders, Resize
 import pickle
 import pandas as pd
+from sklearn.cluster import SpectralClustering
+from sklearn.manifold import TSNE
+# from umap import UMAP
+from sklearn import (manifold, decomposition)
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
 def open_image(fname, size=224):
     # print(fname)
@@ -28,7 +33,6 @@ def create_embeddings(model, array_files, array_class, splits):
     train_dl = dls.train
     embedding_trains, targ_trains = learn.get_preds(dl=train_dl)
 
-
     return embedding_valids, targ_valids, embedding_trains, targ_trains
 
 def import_embeddings(source):
@@ -40,8 +44,14 @@ def import_embeddings(source):
     return embedding_trains, embedding_valids, targ_trains, targ_valids
 
 def create_resdistance(Nimages, batch, valids, model):
+    list_image = []
+    print(len(valids))
+    for i in range(Nimages*(batch-1), Nimages*batch):
+        print(i, end = '\r')
+        t1 = open_image(valids[i])
+        list_image.append(model.encoder(t1.unsqueeze(0)))
+
     res = np.zeros((Nimages, Nimages))
-    list_image = create_embeddings(Nimages, batch, valids, model)
     for i in range(Nimages):
         for j in range(i, Nimages):
             print(i, end = '\r')
@@ -54,3 +64,17 @@ def create_resdistance(Nimages, batch, valids, model):
             res[i][j] = out.item()
             res[j][i] = res[i][j]
     return res
+
+def project_2D(X,y,method):
+    if method == 'PCA':
+        X_proj = decomposition.TruncatedSVD(n_components=2).fit_transform(X)
+    elif method == 'LDA' :
+        lda = LDA(n_components = 2)
+        X_proj = lda.fit_transform(X,y)
+    if method == 'UMAP':
+        umap_2d = UMAP(n_components=2, init='random', random_state=0)
+        X_proj = umap_2d.fit_transform(X)
+    elif method == 't-SNE':
+        tsne = TSNE(n_components=2, random_state=0, metric = 'manhattan')
+        X_proj= tsne.fit_transform(X)
+    return X_proj
