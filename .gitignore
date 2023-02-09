@@ -42,3 +42,7 @@ references/variables/barcelona_embedding_valids.obj
 models/mixed_sources_trained/barcelona_saint_antoine/siamese2
 src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
 src/main.py
+src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
+src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
+src/visualisation/__pycache__/KNN.cpython-310.pyc
+src/models/siamese/__pycache__/siamese_models.cpython-310.pyc

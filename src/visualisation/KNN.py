@@ -75,7 +75,7 @@ def plot_KNN_space(targ_trains, targ_valids, X_2D, y):
 #         plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
         plt.pcolormesh(xx, yy, Z, cmap=cmap_bold, alpha = 0.5)
         # Plot also the training points, x-axis = 'Glucose', y-axis = "BMI"
-        plt.scatter(X_2D[:, 0], X_2D[:, 1], c=y, cmap=cmap_bold, s=2)
+        plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test, cmap=cmap_bold, s=2)
         plt.xlim(xx.min(), xx.max())
         plt.ylim(yy.min(), yy.max())
         plt.title("0/1 outcome classification (k = %i, weights = '%s')" % (n_neighbors, weights))

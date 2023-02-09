@@ -67,7 +67,8 @@ embedding_trains, embedding_valids, targ_trains, targ_valids = import_embeddings
 X = torch.cat((embedding_trains, embedding_valids))
 y = torch.cat((targ_trains, targ_valids))
 
-preds_valids, KNN_accuracy = KNN_score(embedding_trains, embedding_valids, targ_trains, targ_valids)
+# preds_valids, KNN_accuracy = KNN_score(embedding_trains, embedding_valids, targ_trains, targ_valids)
+
 
 # plot_correlation(targ_valids, preds_valids, list_labels_cat)
 
