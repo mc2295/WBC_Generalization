@@ -1,7 +1,7 @@
 import pickle
 import pandas as pd
 import numpy as np
-from fastai.vision.all import TfmdLists, Resize, ToTensor, IntToFloatTensor
+from fastai.vision.all import TfmdLists, Resize, ToTensor, IntToFloatTensor, ImageDataLoaders
 from sklearn.model_selection import train_test_split
 import os as os
 
@@ -72,7 +72,7 @@ def create_valid_train_test_splits(array_files, array_class, source):
 def class_proportion(y):
     return (np.unique(y, return_counts=True)[1]/len(y))
 
-def create_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, SiameseTransform, batchsize):
+def create_siamese_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, SiameseTransform, batchsize):
     tfm = SiameseTransform(array_files, splits, dic_labels, list_labels_cat)
     tls = TfmdLists(array_files, tfm, splits=splits)
     dls = tls.dataloaders(after_item=[Resize(224), ToTensor],
@@ -82,3 +82,10 @@ def create_dataloader(array_files, array_class, splits, dic_labels, list_labels_
     valids = array_files[splits[1]]
     valids_class = array_class[splits[1]]
     return trains, valids, valids_class, tls, dls
+
+def create_dataloader(array_files, array_class, splits):
+    # dls_unlabeled = ImageDataLoaders.from_df(df, item_tfms=Resize(224), path = '../data/Single_cells/Pred2_Image_60.vsi - 40x_BF_EFI_01/', seed = 42)
+    # dls_unlabeled.cuda()
+    df = pd.DataFrame(list(zip(array_files, array_class, [i in splits[1] for i in range(len(array_files))])), columns = ['name', 'label', 'is_valid'])
+    dls = ImageDataLoaders.from_df(df, item_tfms=Resize(224), path = '../', valid_col='is_valid')  
+    return dls 

@@ -19,7 +19,7 @@ def open_image(fname, size=224):
     return t.permute(2,0,1).float()/255.0
 
 
-def create_embeddings(model, array_files, array_class, splits):
+def create_embeddings_siamese(model, array_files, array_class, splits):
     df = pd.DataFrame(list(zip(array_files, array_class, [i in splits[1] for i in range(len(array_files))])), columns = ['name', 'label', 'is_valid'])
     dls = ImageDataLoaders.from_df(df, item_tfms=Resize(224),  path = '../../Documents/These/', valid_col='is_valid')
     if torch.cuda.is_available():
@@ -33,6 +33,14 @@ def create_embeddings(model, array_files, array_class, splits):
     train_dl = dls.train
     embedding_trains, targ_trains = learn.get_preds(dl=train_dl)
 
+    return embedding_valids, targ_valids, embedding_trains, targ_trains
+
+def create_embeddings(dls, model):
+    learn_labeled = Learner(dls, model.encoder)
+    train_dl_labeled = dls.train
+    embedding_trains, targ_trains = learn_labeled.get_preds(dl=train_dl_labeled)
+    valids_dl_labeled = dls.valid
+    embedding_valids, targ_valids = learn_labeled.get_preds(dl = valids_dl_labeled)
     return embedding_valids, targ_valids, embedding_trains, targ_trains
 
 def import_embeddings(source):

@@ -24,7 +24,7 @@ from torch.nn import CrossEntropyLoss
 from fastai.vision.all import *
 # from dataloader import SiameseImage, SiameseTransform
 from models.siamese.siamese_models import SiameseModel_gregoire, SiameseModel
-from data.create_variables import create_dataloader, create_variables
+from data.create_variables import create_siamese_dataloader, create_variables
 from data.siamese_image import open_image, label_func, SiameseImage, SiameseTransform
 from models.siamese.siamese_params import BCE_loss, siamese_splitter, my_accuracy, contrastive_loss
 from visualisation.check_accuracy import check_accuracy
@@ -38,7 +38,7 @@ source = ['barcelona']
 array_files, array_class, splits, dic_labels, list_labels_cat = create_variables('references', source)
 
 ### train model
-# trains, valids, valids_class, tls, dls = create_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, SiameseTransform, 8)
+# trains, valids, valids_class, tls, dls = create_siamese_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, SiameseTransform, 8)
 
 # opt_func = partial(OptimWrapper, opt=optim.RMSprop)
 
