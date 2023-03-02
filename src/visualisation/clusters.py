@@ -3,8 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 # import umap.umap_ as umap
 import flameplot as flameplot
-
-
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from PIL import Image
+from sklearn import decomposition
+from sklearn.manifold import TSNE
 from PIL import Image
 
 
@@ -42,8 +44,19 @@ def make_walls(res, Nimages, batch, valids, valids_class, source, training_sourc
         newWall = make_wall(allIm[indiceCluster[i]], source, valids_class[indiceCluster[i]+Nimages*(batch-1)], order)
         plt.imsave(arr= newWall, fname = 'reports/' + source + "_walls/" + training_source + "_training/batch_"+ str(batch)+ "/cluster" + str(i) + ".png")
 
-def scatter_plot_clusters(X_2D, y, method):
-
-    fig, ax = flameplot.scatter(X_2D[:,0], X_2D[:,1], labels=y, title=method, density=False)
+def scatter_plot_2D(X,y,method):
+    if method == 'PCA':
+        X_proj = decomposition.TruncatedSVD(n_components=2).fit_transform(X)
+    elif method == 'LDA' :
+        lda = LDA(n_components = 2)
+        X_proj = lda.fit_transform(X,y)
+    if method == 'UMAP':
+        umap_2d = UMAP(n_components=2, init='random', random_state=0)
+        X_proj = umap_2d.fit_transform(X)
+    elif method == 't-SNE':
+        tsne = TSNE(n_components=2, random_state=0, metric = 'manhattan')
+        X_proj= tsne.fit_transform(X)
+    fig, ax = flameplot.scatter(X_proj[:,0], X_proj[:,1], labels=y, title=method, density=False)
     # fig.savefig('reports/' + method + '/' + training_source + '_si '+ siamese_number + ' _on_'+ source1 + '_batch_1.png')
     plt.show()
+    return X_proj

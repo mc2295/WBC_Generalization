@@ -86,6 +86,7 @@ class SiameseModel0(Module):
 class SiameseModel(Module):
     def __init__(self, resnet, head):
         super(SiameseModel, self).__init__()
+        self.siamese_head = True
         self.resnet, self.head = resnet, head
         self.encoder = nn.Sequential(
             self.resnet,
@@ -94,17 +95,16 @@ class SiameseModel(Module):
             nn.Linear(2048, 256))
 
     def similarity(self, x1, x2):
-#         x = F.pairwise_distance(x1, x2, keepdim = True)
-        x = torch.abs(x1 - x2)
+        x = torch.abs(x1 - x2)        
         x = self.head(x)
         x = nn.Sigmoid()(x)
         return x
-
+    
     def forward(self, x1, x2):
         e1 = self.encoder(x1)
         e2 = self.encoder(x2)
         return self.similarity(e1, e2)
-
+    
 class SiameseNetwork2(Module):
 
     def __init__(self):

@@ -1,82 +1,105 @@
 import torch
-import torchvision
-from PIL import Image
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
+import seaborn as sns
 import matplotlib.pyplot as plt
-# from map_classes import dic_classes_st_antoinehttp://127.0.0.1:3005/?token=f51194683ad1099fa74a1f3fca576705d86d744833a700cb
-import pickle
-from torch import optim
 from fastai.optimizer import OptimWrapper
-import random
-import PIL
-import numpy as np
-from torch.nn import Conv2d
-from torch.nn import Module
-from torch.nn import MaxPool2d, AdaptiveMaxPool2d
-# from torchmetrics.functional import pairwise_euclidean_distance
-from torch.nn import Linear
-from torch.nn import ReLU, LeakyReLU
-from torch.nn import Softmax
-from torch.nn import Module
-from torch.optim import SGD
-from torch.nn import CrossEntropyLoss
+from torch import optim
+from pylab import rcParams
+from sklearn.metrics import confusion_matrix
+from sklearn.neighbors import KNeighborsClassifier
 from fastai.vision.all import *
-# from dataloader import SiameseImage, SiameseTransform
-from models.siamese.siamese_models import SiameseModel_gregoire, SiameseModel
-from data.create_variables import create_siamese_dataloader, create_variables
-from data.siamese_image import open_image, label_func, SiameseImage, SiameseTransform
-from models.siamese.siamese_params import BCE_loss, siamese_splitter, my_accuracy, contrastive_loss
-from visualisation.check_accuracy import check_accuracy
-from visualisation.make_embeddings import create_resdistance, create_embeddings, import_embeddings, project_2D
-from visualisation.clusters import scatter_plot_clusters, make_walls
-from visualisation.KNN import KNN_score, plot_correlation, plot_KNN_space
+from data.siamese_image import SiameseTransform, show_batch
+from models.siamese.siamese_models import SiameseModel
+from models.encoder_head_model import Model, ModelFromResnet
+from data.create_variables import create_variables, create_dataloader, create_dataloader_siamese
+from models.siamese.siamese_params import BCE_loss, siamese_splitter, my_accuracy
+from visualisation.clusters import scatter_plot_2D
+from visualisation.KNN import plot_correlation
 # from nbdev import show_doc
 
+class Workflow():
+    def __init__(self, entry_path):
+        self.entry_path = entry_path
+    def create_dls(self, source, batchsize, siamese_head):
+        if siamese_head: 
+            return create_dataloader_siamese(self.entry_path, source, batchsize, SiameseTransform)
+        else: 
+            return create_dataloader(self.entry_path, source, batchsize)
 
-source = ['barcelona']
-array_files, array_class, splits, dic_labels, list_labels_cat = create_variables('references', source)
+    def create_model(self, siamese_head):
+        body = create_body(xresnet101(), cut=-4)
+        if siamese_head: 
+            head = create_head(128, 1, ps=0.5)[2:]
+            return SiameseModel(body, head)
+        else: 
+            head = create_head(128, 6, ps=0.5)[2:]
+            return ModelFromResnet(body, head)
+    
+    def import_model(self, model_path):
+        model = torch.load(model_path)
+        return model
 
-### train model
-# trains, valids, valids_class, tls, dls = create_siamese_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, SiameseTransform, 8)
+    def create_learner(self, model, dls):
+        if model.siamese_head:
+            opt_func = partial(OptimWrapper, opt=optim.RMSprop)
+            learn = Learner(dls, model, opt_func = opt_func, loss_func=BCE_loss, splitter = siamese_splitter, metrics=my_accuracy)                  
+        else: 
+            learn = Learner(dls, model, loss_func=LabelSmoothingCrossEntropy(), metrics = accuracy)
+        return learn
+    
+    def train_model(self, source_train, batchsize, epoch_nb, siamese_head, lr = None):
+        model = self.create_model(siamese_head)
+        dls = self.create_dls(source_train, batchsize, siamese_head)
+        learn = self.create_learner(model, dls)
+        if lr is not None: 
+            learn.fit_one_cycle(epoch_nb, lr)
+        else: 
+            learn.lr_find()
+            print(learn.lr_find())
+        return learn.model
 
-# opt_func = partial(OptimWrapper, opt=optim.RMSprop)
+    def evaluate_model(self, model, source_test, batchsize):
+        dls_test = self.create_dls(source_test, batchsize, model.siamese_head)
+        learn_test = self.create_learner(model, dls_test)
+        preds, target = learn_test.get_preds(dl = dls_test.valid)
+        if model.siamese_head == False:
+            interp = ClassificationInterpretation.from_learner(learn_test)
+            interp.plot_confusion_matrix(normalize=True)
+        return accuracy(preds, target)
 
-# encoder = create_body(xresnet101(), cut=-4)
-# head = create_head(128, 1, ps=0.5)[2:]
+    def add_classifier_head(self, model):
+        return Model(model.encoder, create_head(128, 6, ps=0.5)[2:], siamese_head = False)
 
-# model = SiameseModel(encoder, head)
+    def fine_tune(self, model, source_tuning, batchsize, epoch_nb, lr = None):
+        dls_tune = self.create_dls(source_tuning, batchsize, model.siamese_head)
+        learn = self.create_learner(model, dls_tune)
+        learn.freeze_to(1)
+        if lr: 
+            learn.fit_one_cycle(epoch_nb, lr)
+        else: 
+            learn.lr_find()
+            print(learn.lr_find())
+        return learn.model
+    
+    def create_embeddings(self, model, source, batchsize):
+        dls = self.create_dls(source, batchsize, siamese_head = False)
+        learn = Learner(dls, model.encoder, loss_func = LabelSmoothingCrossEntropy())
+        embedding, labels = learn.get_preds(dl=dls.train)
+        return embedding, labels
+    
+    def visualise_2D(self, model, source, batchsize, method):
+        embedding, labels = self.create_embeddings(model, source, batchsize)
+        X_proj = scatter_plot_2D(embedding, labels, method)
+        return X_proj
 
-# learn = Learner(dls, model, opt_func = opt_func, loss_func=BCE_loss, splitter=siamese_splitter, metrics=my_accuracy)
-
-# learn.fit_one_cycle(1, slice(1e-6,1e-4))
-
-# torch.save(learn.model, 'models/'+ source2 + '_trained/siamese/siamese_test')
-
-
-### visualise
-
-# training_source1, training_source2 = 'saint_antoine'
-# siamese_number = str(8)
-
-# model = torch.load('models/'+ training_source2 + '_trained/siamese' + siamese_number + '_stage1', map_location = 'cpu')
-
-# print(check_accuracy(dls, model))
-
-embedding_trains, embedding_valids, targ_trains, targ_valids = import_embeddings(source[0])
-X = torch.cat((embedding_trains, embedding_valids))
-y = torch.cat((targ_trains, targ_valids))
-
-# preds_valids, KNN_accuracy = KNN_score(embedding_trains, embedding_valids, targ_trains, targ_valids)
-
-
-# plot_correlation(targ_valids, preds_valids, list_labels_cat)
-
-X_2D = project_2D(X,y,'t-SNE')
-# scatter_plot_clusters(X_2D, y, 't-SNE')
-
-plot_KNN_space(targ_trains, targ_valids, X_2D, y)
-
-# res = create_resdistance(150, 5, valids, model)
-
-# make_walls(res, 500, 1, valids, valids_class, source1,training_source1)
+    def knn_on_embeddings(self, model, source_train, source_test, batchsize):
+        embedding_train, labels_train = self.create_embeddings( model, source_train, batchsize)
+        embedding_test, labels_test = self.create_embeddings( model, source_test, batchsize)
+        knn = KNeighborsClassifier(n_neighbors = 4, metric='manhattan')
+        knn.fit(embedding_train, labels_train)
+        preds_test = knn.predict(embedding_test)
+        print(knn.score(embedding_test, labels_test))
+        list_labels_cat = ['basophil', 'eosinophil', 'erythroblast', 'lymphocyte', 'neutrophil', 'monocyte']
+        plot_correlation(labels_test, preds_test, list_labels_cat)
+        return preds_test

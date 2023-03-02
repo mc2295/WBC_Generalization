@@ -1,8 +1,8 @@
 from fastai.vision.all import *
 # import torch
-def open_image(fname, size=224):
+def open_image(entry_path, fname, size=224):
     print(fname)
-    img = PIL.Image.open('../../Documents/These/' + fname).convert('RGB')
+    img = PIL.Image.open(entry_path + fname).convert('RGB')
     img = img.resize((size, size))
     t = torch.Tensor(np.array(img))
     return t.permute(2,0,1).float()/255.0
@@ -27,7 +27,8 @@ class SiameseImage(fastuple):
         return show_image(torch.cat([t1,line,t2], dim=2), title=similarity, ctx=ctx, **kwargs)
 
 class SiameseTransform(Transform):
-    def __init__(self, files, splits, dic_labels, list_labels_cat):
+    def __init__(self, files, splits, dic_labels, list_labels_cat, entry_path):
+        self.entry_path = entry_path
         self.dic_labels = dic_labels
         self.list_labels_cat = list_labels_cat
         self.splbl2files = [{l: [f for f in files[splits[i]] if label_func(f, dic_labels) == l] for l in list_labels_cat}
@@ -36,7 +37,7 @@ class SiameseTransform(Transform):
         self.train = {f: self._draw(f,1) for f in files[splits[0]]}
     def encodes(self, f):
         f2,same = self.valid.get(f, self._draw(f,0))
-        img1,img2 = PILImage.create('../../Documents/These/' + f),PILImage.create('../../Documents/These/' + f2)
+        img1,img2 = PILImage.create(self.entry_path + f),PILImage.create(self.entry_path+ f2)
         return SiameseImage(img1, img2, int(same))
 
     def _draw(self, f, split=0):

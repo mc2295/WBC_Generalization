@@ -46,3 +46,21 @@ src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
 src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
 src/visualisation/__pycache__/KNN.cpython-310.pyc
 src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
+data/Single_cells/
+models/tmp3ax1u6yw/_tmp.pth
+models/test_classifier
+models/test_siamese
+models/test_siamese_classifier_head
+reports/.~lock.summary of the results.ods#
+src/__pycache__/main.cpython-310.pyc
+src/data/__pycache__/create_variables.cpython-310.pyc
+src/data/__pycache__/siamese_image.cpython-310.pyc
+src/data/__pycache__/create_variables.cpython-310.pyc
+src/data/__pycache__/siamese_image.cpython-310.pyc
+src/models/__pycache__/encoder_head_model.cpython-310.pyc
+src/data/__pycache__/create_variables.cpython-310.pyc
+src/data/__pycache__/siamese_image.cpython-310.pyc
+src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
+src/visualisation/__pycache__/clusters.cpython-310.pyc
+src/visualisation/__pycache__/KNN.cpython-310.pyc
+src/visualisation/__pycache__/make_embeddings.cpython-310.pyc

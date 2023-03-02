@@ -20,7 +20,7 @@ def create_df(reference_path, source_df, list_labels_cat):
 
     return files, class_list
 
-def create_variables(reference_path, source):
+def create_variables(entry_path, source):
 
     list_labels_cat = (['basophil', 'eosinophil', 'erythroblast', 'lymphocyte', 'neutrophil', 'monocyte'])
 
@@ -31,12 +31,14 @@ def create_variables(reference_path, source):
 
     for k in range(len(source)):
 
-        files_one_source, class_one_source = create_df(reference_path, [source[k]], list_labels_cat)
+        files_one_source, class_one_source = create_df(entry_path + 'references', [source[k]], list_labels_cat)
         files += files_one_source
         class_list += class_one_source
 
-        file_splits = open(reference_path + '/variables/'+ source[k]+'_splits.obj', 'rb')
+        file_splits = open(entry_path + 'references' + '/variables/'+ source[k]+'_splits.obj', 'rb')
         splits_one_source = pickle.load(file_splits)
+        if source[k] == 'matek' : 
+            splits_one_source = splits_one_source[0][:30000], splits_one_source[1][:5000]
         splits = [splits[j] + [[k + len_array_files for k in splits_one_source[i]] for i in range(2)][j] for j in range(2)]
         # splits_translated = [[k + len_array_files for k in splits_one_source[i]] for i in range(2)]
         # splits = splits[0] + splits_translated[0], splits[1] + splits_translated[1]
@@ -72,8 +74,10 @@ def create_valid_train_test_splits(array_files, array_class, source):
 def class_proportion(y):
     return (np.unique(y, return_counts=True)[1]/len(y))
 
-def create_siamese_dataloader(array_files, array_class, splits, dic_labels, list_labels_cat, SiameseTransform, batchsize):
-    tfm = SiameseTransform(array_files, splits, dic_labels, list_labels_cat)
+def create_dataloader_siamese(entry_path, source, batchsize, SiameseTransform):
+    array_files, array_class, splits, dic_labels, list_labels_cat = create_variables(entry_path, source)
+    
+    tfm = SiameseTransform(array_files, splits, dic_labels, list_labels_cat, entry_path)
     tls = TfmdLists(array_files, tfm, splits=splits)
     dls = tls.dataloaders(after_item=[Resize(224), ToTensor],
                     after_batch=[IntToFloatTensor], bs = batchsize)
@@ -81,11 +85,10 @@ def create_siamese_dataloader(array_files, array_class, splits, dic_labels, list
     trains  = array_files[splits[0]]
     valids = array_files[splits[1]]
     valids_class = array_class[splits[1]]
-    return trains, valids, valids_class, tls, dls
+    return dls
 
-def create_dataloader(array_files, array_class, splits):
-    # dls_unlabeled = ImageDataLoaders.from_df(df, item_tfms=Resize(224), path = '../data/Single_cells/Pred2_Image_60.vsi - 40x_BF_EFI_01/', seed = 42)
-    # dls_unlabeled.cuda()
-    df = pd.DataFrame(list(zip(array_files, array_class, [i in splits[1] for i in range(len(array_files))])), columns = ['name', 'label', 'is_valid'])
-    dls = ImageDataLoaders.from_df(df, item_tfms=Resize(224), path = '../', valid_col='is_valid')  
-    return dls 
+def create_dataloader(entry_path, source, batchsize):
+    array_files, array_class, splits, dic_labels, list_labels_cat = create_variables(entry_path , source)
+    df = pd.DataFrame(list(zip(array_files[splits[0]+splits[1]], array_class[splits[0]+splits[1]], [i in splits[1] for i in range(len(array_files[splits[0]+splits[1]]))])), columns = ['name', 'label', 'is_valid'])
+    dls = ImageDataLoaders.from_df(df, item_tfms=Resize(224), path = entry_path, valid_col='is_valid', bs = batchsize)    
+    return dls
