@@ -64,3 +64,11 @@ src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
 src/visualisation/__pycache__/clusters.cpython-310.pyc
 src/visualisation/__pycache__/KNN.cpython-310.pyc
 src/visualisation/__pycache__/make_embeddings.cpython-310.pyc
+src/data/__pycache__/create_variables.cpython-310.pyc
+src/data/__pycache__/siamese_image.cpython-310.pyc
+src/models/__pycache__/create_model.cpython-310.pyc
+src/models/__pycache__/model_params.cpython-310.pyc
+src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
+src/visualisation/__pycache__/clusters.cpython-310.pyc
+src/visualisation/__pycache__/KNN.cpython-310.pyc
+src/visualisation/__pycache__/make_embeddings.cpython-310.pyc
