@@ -8,30 +8,22 @@ import pandas as pd
 from sklearn.cluster import SpectralClustering
 from sklearn.manifold import TSNE
 # from umap import UMAP
-from sklearn import (manifold, decomposition)
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from data.create_variables import create_dls
 
-def open_image(entry_path, fname, size=224):
+def open_image(fname, size=224):
     # print(fname)
-    img = Image.open(entry_path+ fname).convert('RGB')
+    img = Image.open('../../Documents/These/' + fname).convert('RGB')
     img = img.resize((size, size))
     t = torch.Tensor(np.array(img))
     return t.permute(2,0,1).float()/255.0
 
-def import_embeddings(source):
-    file1 = open('references/variables/' + source + '_embedding_trains.obj', 'rb')
-    file2 = open('references/variables/' + source + '_embedding_valids.obj', 'rb')
-    file3 = open('references/variables/' + source + '_targ_trains.obj', 'rb')
-    file4 = open('references/variables/' + source + '_targ_valids.obj', 'rb')
-    embedding_trains, embedding_valids, targ_trains, targ_valids = pickle.load(file1), pickle.load(file2), pickle.load(file3), pickle.load(file4)
-    return embedding_trains, embedding_valids, targ_trains, targ_valids
-
-def create_resdistance(entry_path, Nimages, batch, valids, model):
+def create_resdistance(Nimages, batch, valids, model):
     list_image = []
     print(len(valids))
     for i in range(Nimages*(batch-1), Nimages*batch):
         print(i, end = '\r')
-        t1 = open_image(entry_path, valids[i])
+        t1 = open_image(valids[i])
         list_image.append(model.encoder(t1.unsqueeze(0)))
 
     res = np.zeros((Nimages, Nimages))
@@ -47,3 +39,54 @@ def create_resdistance(entry_path, Nimages, batch, valids, model):
             res[i][j] = out.item()
             res[j][i] = res[i][j]
     return res
+
+def flatten_batch(b):
+    n = len(b)
+    X = torch.empty(n, 224*224)
+    for j in range(n):
+        X[j] = torch.sum(b[j], dim = 0).view(224*224)
+    return X
+
+def create_matrix_of_flattened_images(entry_path, batchsize, source, transform):
+    n = batchsize
+    X = torch.empty(n*len(source),224*224)
+    dataset = []
+    for i,k in enumerate(source):
+        dls = create_dls(entry_path, [k], siamese_head = False, batchsize= n, transform = transform)
+        b = dls.one_batch()[0]
+        b = flatten_batch(b)
+        X[i*n: (i+1)*n] = b
+        dataset += [k for i in range(n)]
+    return X, dataset
+
+def create_embeddings(entry_path, model, source, batchsize = 32, test_set = False, transform = False):
+    X = []
+    labels = []
+    dataset = []
+    for k in source:
+        size = 0
+        if k == 'matek':
+            size = 15000
+        dls = create_dls(entry_path, [k],siamese_head= False, batchsize = batchsize, size = size, transform = transform)
+#             learn = Learner(dls, model.encoder, loss_func = LabelSmoothingCrossEntropy())
+        learn = Learner(dls, model.encoder)
+#             learner = create_learner(self.entry_path, model.encoder, source_train, False, batchsize = batchsize, size = size, transform = transform)
+        dl_set = dls.valid if test_set else dls.train
+        embedding_trains, label = learn.get_preds(dl=dl_set) 
+        n = embedding_trains.shape[0]
+        X+= [embedding_trains[j].detach().numpy() for j in range(n)]
+        labels+= [label[j].detach().numpy() for j in range(n)]
+        dataset += [k for i in range(n)] 
+    return X, labels, dataset
+
+def create_filenames_from_dls(entry_path, model, source, batchsize=32):
+    filenames = []
+    for k in source:
+        if k == 'matek':
+            dls = create_dls(entry_path,[k], siamese_head = False, batchsize = batchsize, size = 15000)
+        else: 
+            dls = create_dls(entry_path, [k], siamese_head = False, batchsize = batchsize)
+        learn = Learner(dls, model.encoder)
+        for i in range(len(learn.dls.train_ds)):
+            filenames.append(str(learn.dls.train_ds.items.name[i]))
+    return filenames

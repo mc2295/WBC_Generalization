@@ -1,105 +1,79 @@
 import torch
-import pandas as pd
-pd.options.mode.chained_assignment = None  # default='warn'
-import seaborn as sns
 import matplotlib.pyplot as plt
-from fastai.optimizer import OptimWrapper
-from torch import optim
-from pylab import rcParams
+import numpy as np
+from fastai.vision.all import create_head, ClassificationInterpretation, accuracy
 from sklearn.metrics import confusion_matrix
 from sklearn.neighbors import KNeighborsClassifier
-from fastai.vision.all import *
 from data.siamese_image import SiameseTransform, show_batch
-from models.siamese.siamese_models import SiameseModel
-from models.encoder_head_model import Model, ModelFromResnet
-from data.create_variables import create_variables, create_dataloader, create_dataloader_siamese
-from models.siamese.siamese_params import BCE_loss, siamese_splitter, my_accuracy
-from visualisation.clusters import scatter_plot_2D
+from data.create_variables import create_variables, create_dls
+from models.create_model import create_model, create_learner, create_dls
+from models.encoder_head_model import Model
+from visualisation.clusters import scatter_plot_embeddings, create_df_of_2D_embeddings_info, visualise_images_in_region
 from visualisation.KNN import plot_correlation
-# from nbdev import show_doc
+from visualisation.make_embeddings import flatten_batch, create_matrix_of_flattened_images, create_embeddings, create_filenames_from_dls
 
+# from nbdev import show_doc
+print(torch.cuda.is_available())
 class Workflow():
     def __init__(self, entry_path):
         self.entry_path = entry_path
-    def create_dls(self, source, batchsize, siamese_head):
-        if siamese_head: 
-            return create_dataloader_siamese(self.entry_path, source, batchsize, SiameseTransform)
-        else: 
-            return create_dataloader(self.entry_path, source, batchsize)
-
-    def create_model(self, siamese_head):
-        body = create_body(xresnet101(), cut=-4)
-        if siamese_head: 
-            head = create_head(128, 1, ps=0.5)[2:]
-            return SiameseModel(body, head)
-        else: 
-            head = create_head(128, 6, ps=0.5)[2:]
-            return ModelFromResnet(body, head)
     
-    def import_model(self, model_path):
-        model = torch.load(model_path)
-        return model
-
-    def create_learner(self, model, dls):
-        if model.siamese_head:
-            opt_func = partial(OptimWrapper, opt=optim.RMSprop)
-            learn = Learner(dls, model, opt_func = opt_func, loss_func=BCE_loss, splitter = siamese_splitter, metrics=my_accuracy)                  
-        else: 
-            learn = Learner(dls, model, loss_func=LabelSmoothingCrossEntropy(), metrics = accuracy)
-        return learn
-    
-    def train_model(self, source_train, batchsize, epoch_nb, siamese_head, lr = None):
-        model = self.create_model(siamese_head)
-        dls = self.create_dls(source_train, batchsize, siamese_head)
-        learn = self.create_learner(model, dls)
-        if lr is not None: 
-            learn.fit_one_cycle(epoch_nb, lr)
-        else: 
-            learn.lr_find()
-            print(learn.lr_find())
+    def find_learning_rate(self, model, source, batchsize = 32, size = 0, transform = False):
+        learn = create_learner(self.entry_path, model, source, model.siamese_head, batchsize, size = size, transform = transform) 
+        learn.lr_find()
+        print(learn.lr_find())
+        return learn.lr_find()
+        
+    def train_model(self, source_train, epoch_nb, siamese_head,  lr, batchsize = 32, size = 0, transform = False):
+        model = create_model(siamese_head)
+        learn = create_learner(self.entry_path, model, source_train, siamese_head, batchsize, size = size, transform = transform)
+        learn.fit_one_cycle(epoch_nb, lr)
         return learn.model
 
-    def evaluate_model(self, model, source_test, batchsize):
-        dls_test = self.create_dls(source_test, batchsize, model.siamese_head)
-        learn_test = self.create_learner(model, dls_test)
-        preds, target = learn_test.get_preds(dl = dls_test.valid)
+    def fine_tune_with_classifier_head(self, model, source_tuning, batchsize, epoch_nb, lr, size = 0, transform = False):
+        model = Model(model.encoder, create_head(128, 6, ps=0.5)[2:], siamese_head = False)
+        learn = create_learner(self.entry_path, model, source_tuning, siamese_head = False, batchsize = batchsize, size = size, transform = transform)
+        learn.freeze()
+        learn.fit_one_cycle(epoch_nb, lr)
+        return learn.model
+    
+    def visualise_datasets_intensity_2D(self, image_nb_per_source, source, transform = False):    
+        X, dataset = create_matrix_of_flattened_images(self.entry_path, image_nb_per_source, source, transform = transform)
+        labels = []
+        data = scatter_plot_embeddings(X, labels, 't-SNE', dataset, display_classes = False)
+        return data
+    
+    def visualise_embeddings_2D(self, model, source, method, display_classes = True, batchsize = 32,test_set = False, transform = False):
+        embedding, labels, dataset = create_embeddings(self.entry_path, model, source, batchsize, test_set, transform = transform)
+        df_embeddings = scatter_plot_embeddings(embedding, labels, method, dataset, display_classes)
+        return df_embeddings
+    
+    def display_images_from_scatter_plot_region(self, source, model, df_embeddings, cell_class, x_region, y_region):
+        filenames = create_filenames_from_dls(self.entry_path, model, source)
+        df_embeddings['name'] = filenames
+        group = visualise_images_in_region(self.entry_path, df_embeddings, cell_class, x_region, y_region)
+        return group
+
+    def show_confusion_matrix(self, model, source_test, batchsize = 32, size = 0, transform = False):
+        learn = create_learner(self.entry_path, model, source_test, model.siamese_head, batchsize, size = size, transform = transform) 
+        preds, target, dataset = create_embeddings(self.entry_path, model, source_test, batchsize, test_set = True, transform = transform)
         if model.siamese_head == False:
-            interp = ClassificationInterpretation.from_learner(learn_test)
+            interp = ClassificationInterpretation.from_learner(learn)
             interp.plot_confusion_matrix(normalize=True)
-        return accuracy(preds, target)
-
-    def add_classifier_head(self, model):
-        return Model(model.encoder, create_head(128, 6, ps=0.5)[2:], siamese_head = False)
-
-    def fine_tune(self, model, source_tuning, batchsize, epoch_nb, lr = None):
-        dls_tune = self.create_dls(source_tuning, batchsize, model.siamese_head)
-        learn = self.create_learner(model, dls_tune)
-        learn.freeze_to(1)
-        if lr: 
-            learn.fit_one_cycle(epoch_nb, lr)
-        else: 
-            learn.lr_find()
-            print(learn.lr_find())
-        return learn.model
+        return accuracy(torch.tensor(np.array(preds)), torch.tensor(np.array(target)))
     
-    def create_embeddings(self, model, source, batchsize):
-        dls = self.create_dls(source, batchsize, siamese_head = False)
-        learn = Learner(dls, model.encoder, loss_func = LabelSmoothingCrossEntropy())
-        embedding, labels = learn.get_preds(dl=dls.train)
-        return embedding, labels
     
-    def visualise_2D(self, model, source, batchsize, method):
-        embedding, labels = self.create_embeddings(model, source, batchsize)
-        X_proj = scatter_plot_2D(embedding, labels, method)
-        return X_proj
-
-    def knn_on_embeddings(self, model, source_train, source_test, batchsize):
-        embedding_train, labels_train = self.create_embeddings( model, source_train, batchsize)
-        embedding_test, labels_test = self.create_embeddings( model, source_test, batchsize)
+    def knn_on_embeddings(self, model, source_train, source_test, batchsize = 32, size_training_set = 0, transform = False):
+        embedding_train, labels_train , dataset_train = create_embeddings(self.entry_path, model, source_train, batchsize, test_set = False, transform = transform)
+        print(len(embedding_train))
+        embedding_test, labels_test, dataset_test = create_embeddings(self.entry_path, model, source_test, batchsize, test_set = True, transform = transform)
+        print(len(embedding_test))
         knn = KNeighborsClassifier(n_neighbors = 4, metric='manhattan')
         knn.fit(embedding_train, labels_train)
         preds_test = knn.predict(embedding_test)
         print(knn.score(embedding_test, labels_test))
-        list_labels_cat = ['basophil', 'eosinophil', 'erythroblast', 'lymphocyte', 'neutrophil', 'monocyte']
-        plot_correlation(labels_test, preds_test, list_labels_cat)
+        list_labels_cat = ['basophil', 'eosinophil', 'erythroblast','lymphocyte', 'monocyte', 'neutrophil']
+        if source_test == ['rabin']:
+            list_labels_cat = ['basophil', 'eosinophil','lymphocyte', 'monocyte', 'neutrophil']
+        # plot_correlation(labels_test, preds_test, list_labels_cat)
         return preds_test

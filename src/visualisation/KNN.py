@@ -23,7 +23,7 @@ def plot_correlation(targ_valids, preds_valids, list_labels_cat):
     # init figure size
     targ_valids_cat = [list_labels_cat[i] for i in targ_valids]
     preds_valids_cat = [list_labels_cat[i] for i in preds_valids]
-    rcParams['figure.figsize'] = 15, 20
+    rcParams['figure.figsize'] = 7, 7
     df = pd.DataFrame(confusion_matrix(targ_valids_cat, preds_valids_cat, labels = list_labels_cat, normalize = 'true'), index = list_labels_cat, columns= list_labels_cat)
     fig = plt.figure()
     sns.heatmap(df, annot=True, fmt=".2f")
@@ -32,7 +32,7 @@ def plot_correlation(targ_valids, preds_valids, list_labels_cat):
 
 
 
-def plot_KNN_space(targ_trains, targ_valids, X_2D, y):
+def plot_KNN_space(targ_trains, targ_valids, X_2D):
     '''
     split data, fit, classify, plot and evaluate results
     '''
@@ -75,7 +75,7 @@ def plot_KNN_space(targ_trains, targ_valids, X_2D, y):
 #         plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
         plt.pcolormesh(xx, yy, Z, cmap=cmap_bold, alpha = 0.5)
         # Plot also the training points, x-axis = 'Glucose', y-axis = "BMI"
-        plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test, cmap=cmap_bold, s=2)
+        plt.scatter(X_2D[:, 0], X_2D[:, 1], c=y, cmap=cmap_bold, s=2)
         plt.xlim(xx.min(), xx.max())
         plt.ylim(yy.min(), yy.max())
         plt.title("0/1 outcome classification (k = %i, weights = '%s')" % (n_neighbors, weights))
