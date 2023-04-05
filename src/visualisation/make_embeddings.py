@@ -11,34 +11,22 @@ from sklearn.manifold import TSNE
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from data.create_variables import create_dls
 
+'''
+In this module: 
+- open_image : ok
+- flatten_batch : creates a list of all flattened images of a batch
+- create_matrix_of_flattened_images : same but for multiple sources
+- create_embeddings : creates list of embeddings through a model, with associated label and dataset
+- create_filenames_from_dls : if I want to access to names of images of training set from a dataloader
+'''
+
+
 def open_image(fname, size=224):
     # print(fname)
     img = Image.open('../../Documents/These/' + fname).convert('RGB')
     img = img.resize((size, size))
     t = torch.Tensor(np.array(img))
     return t.permute(2,0,1).float()/255.0
-
-def create_resdistance(Nimages, batch, valids, model):
-    list_image = []
-    print(len(valids))
-    for i in range(Nimages*(batch-1), Nimages*batch):
-        print(i, end = '\r')
-        t1 = open_image(valids[i])
-        list_image.append(model.encoder(t1.unsqueeze(0)))
-
-    res = np.zeros((Nimages, Nimages))
-    for i in range(Nimages):
-        for j in range(i, Nimages):
-            print(i, end = '\r')
-            t1 = list_image[i]
-            t2 = list_image[j]
-            out = torch.abs(t1 - t2)
-            out = model.head(out)
-            out = nn.Sigmoid()(out)
-
-            res[i][j] = out.item()
-            res[j][i] = res[i][j]
-    return res
 
 def flatten_batch(b):
     n = len(b)
@@ -59,13 +47,12 @@ def create_matrix_of_flattened_images(entry_path, batchsize, source, transform):
         dataset += [k for i in range(n)]
     return X, dataset
 
-def create_embeddings(entry_path, model, source, batchsize = 32, test_set = False, transform = False):
+def create_embeddings(entry_path, model, source, batchsize = 32, test_set = False, transform = False, size = 0):
     X = []
     labels = []
     dataset = []
     for k in source:
-        size = 0
-        if k == 'matek':
+        if k == 'matek' and size == 0:
             size = 15000
         dls = create_dls(entry_path, [k],siamese_head= False, batchsize = batchsize, size = size, transform = transform)
 #             learn = Learner(dls, model.encoder, loss_func = LabelSmoothingCrossEntropy())

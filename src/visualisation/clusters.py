@@ -2,16 +2,30 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 # import umap.umap_ as umap
-from sklearn.manifold import TSNE
+from sklearn.manifold import TSNE, Isomap
 # from umap import UMAP
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from sklearn.decomposition import TruncatedSVD, PCA, FastICA
 from PIL import Image
 from pylab import rcParams
-from sklearn import decomposition
 import pandas as pd   # '0.25.3'
 import seaborn as sns # '0.9.0'
 
-def make_wall(im, source1, labels, order, side=7):
+
+'''
+this module: 
+- make_wall : creates a wall with the labels on each image
+- make_walls : creates and saves clusters of spectral clustering from images names and corresponding class
+- project_2D : project embeddings into 2D following requested method
+- create_df_of_2D_embeddings_info: returns dataframe with 
+    ['x', 'y', 'dataset_name', 'labels'] if we want to visualise embeddings
+    ['x', 'y', 'dataset_name'] if we want to see distribution of images flattened vector in 2D depending on dataset
+- scatter_plot_embeddings : ok
+- visualise_images_in_region : shows images corresponding to a certain region in the former scatted plot
+'''
+
+
+def make_wall(im, labels, order, side=7):
 
     Nimage = im.shape[0]
     yside = side
@@ -27,7 +41,7 @@ def make_wall(im, source1, labels, order, side=7):
         res[250*(i//side):250*(i//side)+250, 250*(i%side):250*(i%side)+250] = img/norm
     return(res)
 
-def make_walls(res, Nimages, batch, valids, valids_class, source, training_source):
+def make_walls(res, Nimages, batch, valids, valids_class, training_source):
     Ninit = 1000
     Ncluster = 8
     sc = SpectralClustering(Ncluster, affinity='precomputed', n_init=Ninit, assign_labels='kmeans')
@@ -42,13 +56,13 @@ def make_walls(res, Nimages, batch, valids, valids_class, source, training_sourc
         distanceIntraCluster =  np.mean(res[np.ix_(indiceCluster[i], indiceCluster[i])], axis=0)
         order = np.flip(np.argsort(distanceIntraCluster))
 
-        newWall = make_wall(allIm[indiceCluster[i]], source, valids_class[indiceCluster[i]+Nimages*(batch-1)], order)
-        plt.imsave(arr= newWall, fname = 'reports/' + source + "_walls/" + training_source + "_training/batch_"+ str(batch)+ "/cluster" + str(i) + ".png")
+        newWall = make_wall(allIm[indiceCluster[i]], valids_class[indiceCluster[i]+Nimages*(batch-1)], order)
+        plt.imsave(arr= newWall, fname = 'reports/walls/' + training_source + "_training/batch_"+ str(batch)+ "/cluster" + str(i) + ".png")
 
         
 def project_2D(X,labels,method):
     if method == 'PCA':
-        X_proj = decomposition.TruncatedSVD(n_components=2).fit_transform(X)
+        X_proj = PCA(n_components=2).fit_transform(X)
     elif method == 'LDA' :
         lda = LDA(n_components = 2)
         X_proj = lda.fit_transform(X,labels)
@@ -58,9 +72,18 @@ def project_2D(X,labels,method):
     elif method == 't-SNE':
         tsne = TSNE(n_components=2, random_state=0, metric = 'manhattan')
         X_proj= tsne.fit_transform(X)
+    elif method == 'SVD':
+        svd = TruncatedSVD(n_components=2, random_state=42)
+        X_proj = svd.fit_transform(X)
+    elif method == 'FastICA':
+        ICA = FastICA(n_components=3, random_state=12) 
+        X_proj=ICA.fit_transform(X)
+    elif method == 'Isomap':
+        isomap = Isomap(n_neighbors=5, n_components=2)
+        X_proj = isomap.fit_transform(X)
     return X_proj
 
-def create_df_of_2D_embeddings_info(X, labels, method, dataset, filenames = None):
+def create_df_of_2D_embeddings_info(X, labels, method, dataset):
     n = len(labels)
     if n > 0:
         ## on regarde les embeddings des images par un modèle
@@ -103,7 +126,7 @@ def visualise_images_in_region(entry_path, data, cell_class, x_region, y_region)
                             &(group_class['y']>(y_region[0]))&(group_class['y']<(y_region[1]))]
     fig, axes = plt.subplots(5,5, figsize = ((10,10)))
     for i, ax in enumerate(axes.flat):
-        ax.imshow(plt.imread(entry_path + group.name.iloc[i]))
+        ax.imshow(plt.imread(entry_path +  group.name.iloc[i]))
         ax.set_title(group.classes.iloc[i])
         ax.axis('off')
     return group

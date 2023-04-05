@@ -1,4 +1,12 @@
 from fastai.vision.all import *
+
+'''
+This module creates
+- SiameseImage: class (image1, image2, label) with label = 1 or 0
+- SiameseTransform: generates pairs of images with label (SiameseImage) for train and valid sets, from splits and dic_labels
+- show_batch : shows a siamese batch
+'''
+
 # import torch
 def open_image(entry_path, fname, size=224):
     print(fname)
@@ -45,7 +53,8 @@ class SiameseTransform(Transform):
         cls = label_func(f, self.dic_labels)
         if not same: cls = random.choice(L(l for l in self.list_labels_cat if l != cls))
         return random.choice(self.splbl2files[split][cls]),same
-
+    
+@typedispatch
 def show_batch(x:SiameseImage, y, samples, ctxs=None, max_n=6, nrows=None, ncols=2, figsize=None, **kwargs):
     if figsize is None: figsize = (ncols*6, max_n//ncols * 3)
     if ctxs is None: ctxs = get_grid(min(x[0].shape[0], max_n), nrows=None, ncols=ncols, figsize=figsize)

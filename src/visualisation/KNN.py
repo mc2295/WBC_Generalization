@@ -7,14 +7,11 @@ import seaborn as sns
 from pylab import rcParams
 import numpy as np
 
-def KNN_score(embedding_trains, embedding_valids, targ_trains, targ_valids):
+'''
+- plot_correlation: plots confusion matrix of between target labels and prediction
+- plot_KNN_space : plots 2D graph with colored zones showing what prediction of KNN in this zone would be
+'''
 
-    knn = KNeighborsClassifier(n_neighbors = 4, metric='manhattan')
-    #training
-    knn.fit(embedding_trains, targ_trains)
-    preds_valids = knn.predict(embedding_valids)
-    accuracy = knn.score(embedding_valids, targ_valids)
-    return preds_valids, accuracy
 
 def plot_correlation(targ_valids, preds_valids, list_labels_cat):
     '''

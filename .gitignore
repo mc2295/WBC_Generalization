@@ -72,3 +72,10 @@ src/models/siamese/__pycache__/siamese_models.cpython-310.pyc
 src/visualisation/__pycache__/clusters.cpython-310.pyc
 src/visualisation/__pycache__/KNN.cpython-310.pyc
 src/visualisation/__pycache__/make_embeddings.cpython-310.pyc
+models/barcelona_trained/resnet101_2
+models/barcelona_trained/siamese5
+models/mixed_sources_trained/matek_saint_antoine/siamese1
+reports/summary of the results.ods
+src/data/__pycache__/create_variables.cpython-39.pyc
+src/data/__pycache__/siamese_image.cpython-39.pyc
+reports/summary of the results.ods
