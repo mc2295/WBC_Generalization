@@ -4,13 +4,12 @@ import torch.nn as nn
 from fastai.vision.all import Flatten
 
 '''
-2 types of models: 
-ModelFromResnet: 
+2 types of models:
+ModelFromResnet:
 - we add a linear layer at the end of the encoder
-Model : 
+Model :
 - we take 2 parts of a model (encoder, head) and make a full model, with siamese_head as parameter if siamese model
 '''
-
 class ModelFromResnet(torch.nn.Module):
     def __init__(self, body, head):
         super(ModelFromResnet, self).__init__()
@@ -26,7 +25,7 @@ class ModelFromResnet(torch.nn.Module):
     def forward(self, x):
         x = self.encoder(x)
         return self.head(x)
-    
+
 class Model(torch.nn.Module):
     def __init__(self, encoder, head, siamese_head):
         super(Model, self).__init__()
@@ -34,4 +33,4 @@ class Model(torch.nn.Module):
         self.encoder, self.head = encoder, head
     def forward(self, x):
         x = self.encoder(x)
-        return self.head(x)        
+        return self.head(x)

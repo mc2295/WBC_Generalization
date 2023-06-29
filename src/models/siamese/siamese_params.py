@@ -1,6 +1,10 @@
 import torch
 from fastai.vision.all import params
 import torch.nn as nn
+# from fastai.vision.all import partial
+# opt_func = partial(OptimWrapper, opt=optim.RMSprop)
+# BCE_loss_f = partial(BCE_loss)
+
 def siamese_splitter(model):
     return [params(model.encoder), params(model.head)]
 
@@ -11,10 +15,8 @@ def MCE_loss(out, target):
     res = (out - target).pow(2).mean()
     return res
 
-def BCE_loss(out, target):
-
+def BCE_loss(out, target, reduction = 'mean'):
     return nn.BCELoss()(torch.squeeze(out, 1), target.float())
-
 
 def contrastive_loss(y_pred, y_true):
 
@@ -30,6 +32,7 @@ def contrastive_loss(y_pred, y_true):
     return torch.mean(
         (1 - y_true) * square_pred + (y_true) * margin_square
     )
+
 
 def my_accuracy(input, target):
     label = input > 0.5

@@ -1,10 +1,33 @@
 import torch.nn as nn
 import torch
 from torch.nn import Module
-from fastai.vision.all import Flatten
+from fastai.vision.all import *
 import torchvision
 
 
+
+class SiameseModel(Module):
+    def __init__(self, resnet, head):
+        super(SiameseModel, self).__init__()
+        self.siamese_head = True
+        self.resnet, self.head = resnet, head
+        self.encoder = nn.Sequential(
+            self.resnet,
+            nn.AdaptiveMaxPool2d(output_size=1),
+            Flatten(),
+            nn.Linear(2048, 256))
+
+    def similarity(self, x1, x2):
+#         x = F.pairwise_distance(x1, x2, keepdim = True)
+        x = torch.abs(x1 - x2)
+        x = self.head(x)
+        x = nn.Sigmoid()(x)
+        return x
+
+    def forward(self, x1, x2):
+        e1 = self.encoder(x1)
+        e2 = self.encoder(x2)
+        return self.similarity(e1, e2)
 
 class SiameseModel_gregoire(Module):
     def __init__(self, alpha_param = 0.01):
@@ -65,7 +88,7 @@ class SiameseModel_gregoire(Module):
 class SiameseModel0(Module):
 
     def __init__(self, encoder, head):
-        super(SiameseModel, self).__init__()
+        super(SiameseModel0, self).__init__()
         self.encoder,self.head = encoder,head
 
     # def forward(self, x1, x2):
@@ -83,28 +106,8 @@ class SiameseModel0(Module):
         e2 = self.encoder(x2)
         return self.similarity(e1, e2)
 
-class SiameseModel(Module):
-    def __init__(self, resnet, head):
-        super(SiameseModel, self).__init__()
-        self.siamese_head = True
-        self.resnet, self.head = resnet, head
-        self.encoder = nn.Sequential(
-            self.resnet,
-            nn.AdaptiveMaxPool2d(output_size=1),
-            Flatten(),
-            nn.Linear(2048, 256))
 
-    def similarity(self, x1, x2):
-        x = torch.abs(x1 - x2)        
-        x = self.head(x)
-        x = nn.Sigmoid()(x)
-        return x
-    
-    def forward(self, x1, x2):
-        e1 = self.encoder(x1)
-        e2 = self.encoder(x2)
-        return self.similarity(e1, e2)
-    
+
 class SiameseNetwork2(Module):
 
     def __init__(self):

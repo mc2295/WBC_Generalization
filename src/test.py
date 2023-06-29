@@ -42,14 +42,14 @@ class TestWorkflow(unittest.TestCase):
         model = torch.load('models/test_siamese', map_location=device)
         data = workflow.visualise_embeddings_2D(model, ['test'], 't-SNE')
         assert isinstance(data, pd.DataFrame)
-    
+
     def test_display_images_from_scatter_plot_region(self):
         workflow = Workflow(exit_path)
         model = torch.load('models/test_classifier', map_location=device)
         df_embeddings = workflow.visualise_embeddings_2D(model, ['test'], 't-SNE')
         group = workflow.display_images_from_scatter_plot_region(['test'], model, df_embeddings, ['lymphocyte'], [-10, 10], [-10, 10])
         assert isinstance(group, pd.DataFrame)
-    
+
     def test_show_confusion_matrix(self):
         workflow = Workflow(exit_path)
         model = torch.load('models/test_classifier', map_location=device)

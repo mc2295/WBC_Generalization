@@ -5,7 +5,7 @@ import numpy as np
 import random
 
 '''
-different transforms : 
+different transforms :
 - colour balance based on Gray average
 - colour_balance_on_white needs a white zone and take it as white reference
 - transform_color_transfer : color transfer by putting everything under the same mean and std in alphabetal space
@@ -13,14 +13,14 @@ different transforms :
 - transform_crop: randomly crops image (centered crop)
 '''
 
-def colour_balance(img: PILImage):    
+def colour_balance(img: PILImage):
     img = torch.tensor(np.array(img.resize((224,224)))).permute(2,0,1).float()/255
     R_mean, G_mean ,B_mean = torch.mean(img, dim = [1, 2])
     img_grey = transforms.Grayscale()(img)
     mean_grey = torch.mean(img_grey, dim = [1, 2])
     mean_color = [R_mean, G_mean ,B_mean]
     weight = torch.tensor(np.ones((3, 224,224)))
-    for i in range(3): 
+    for i in range(3):
         weight[i,:,:] = weight[i,:,:]*mean_grey/mean_color[i]
     new_img = torch.mul(img, torch.tensor(weight))
     return new_img.float()
@@ -29,12 +29,12 @@ def colour_balance_on_white(img: PILImage):
     from_row, from_column, row_width, column_width = 10, 10,200,200
     img = torch.tensor(np.array(img.resize((224,224)))).permute(2,0,1).float()/255
     img = img[:3,:,:]
-    # image_patch = img[:,from_row:from_row+row_width, 
+    # image_patch = img[:,from_row:from_row+row_width,
     #                     from_column:from_column+column_width]
     image_patch = img.clone().detach()
     # image_patch = img ## to visualise the black square
-    image_patch[:,from_row:from_row+row_width, 
-                        from_column:from_column+column_width] = torch.tensor(np.zeros_like(image_patch[:,from_row:from_row+row_width, 
+    image_patch[:,from_row:from_row+row_width,
+                        from_column:from_column+column_width] = torch.tensor(np.zeros_like(image_patch[:,from_row:from_row+row_width,
                         from_column:from_column+column_width]))
     rgb1 =1./ image_patch.flatten(-2).max(dim=1).values
     rgb1 = rgb1.reshape(-1, 1, 1)
@@ -44,7 +44,7 @@ def colour_balance_on_white(img: PILImage):
 def rgb2lalphabeta_star(img: PILImage):
     img = torch.tensor(np.array(img.resize((224,224)))).permute(2,1,0).float()/255
     img = img[:3,:,:]
-    mitu = torch.tensor([[0.3811, 0.5783, 0.0402],[0.1967, 0.7244, 0.0782], [0.0241,0.1288,0.8444]]) 
+    mitu = torch.tensor([[0.3811, 0.5783, 0.0402],[0.1967, 0.7244, 0.0782], [0.0241,0.1288,0.8444]])
     mitu = mitu.reshape(3,3,1,1)
 
     lms = torch.log(torch.sum(mitu*img, dim = 1))
@@ -76,9 +76,9 @@ def transform_color_transfer(img: PILImage):
     img[np.where(img == 0)] = 1
     img = torch.tensor(img).permute(2,1,0).float()/255
     img = img[:3,:,:]
-    mitu = torch.tensor([[0.3811, 0.5783, 0.0402],[0.1967, 0.7244, 0.0782], [0.0241,0.1288,0.8444]]) 
+    mitu = torch.tensor([[0.3811, 0.5783, 0.0402],[0.1967, 0.7244, 0.0782], [0.0241,0.1288,0.8444]])
     mitu = mitu.reshape(3,3,1,1)
-    lms = torch.log(torch.sum(mitu*img, dim = 1))    
+    lms = torch.log(torch.sum(mitu*img, dim = 1))
     m = torch.sum(torch.tensor([[1,1,1], [1,1,-2], [1,-1,0]]).reshape(3,3,1,1)*lms, dim=1)
     lalphabeta = torch.sum(torch.tensor([[1/np.sqrt(3),0,0], [0,1/np.sqrt(6),0], [0,0, 1/np.sqrt(2)]]).reshape(3,3,1,1)*m, dim=1)
     lalphabeta = lalphabeta - torch.mean(lalphabeta, dim = [1,2]).reshape(-1,1,1)
@@ -87,7 +87,7 @@ def transform_color_transfer(img: PILImage):
     m = torch.sum(torch.tensor([[np.sqrt(3)/3,0,0], [0,np.sqrt(6)/6,0], [0,0, np.sqrt(2)/2]]).reshape(3,3,1,1)*lalphabeta, dim=1)
     lms_log = torch.sum(torch.tensor([[1,1,1], [1,1,-1], [1,-2,0]]).reshape(3,3,1,1)*m, dim=1)
     lms = torch.exp(lms_log)
-    img_transformed = torch.sum(torch.tensor([[4.4679, -3.5873,0.1193], [-1.2186,2.3809,-0.1624], [0.0497,-0.2439,1.2045]]).reshape(3,3,1,1)*lms, dim=1)    
+    img_transformed = torch.sum(torch.tensor([[4.4679, -3.5873,0.1193], [-1.2186,2.3809,-0.1624], [0.0497,-0.2439,1.2045]]).reshape(3,3,1,1)*lms, dim=1)
 
 
     # lalphabeta_star2, average2 = rgb2lalphabeta_star(img_to_transform)

@@ -6,6 +6,7 @@ import pandas as pd
 import seaborn as sns
 from pylab import rcParams
 import numpy as np
+from collections import Counter
 
 '''
 - plot_correlation: plots confusion matrix of between target labels and prediction
@@ -13,21 +14,43 @@ import numpy as np
 '''
 
 
-def plot_correlation(targ_valids, preds_valids, list_labels_cat):
+def plot_correlation(targ_valids, preds_valids, classes,):
     '''
     plot correlation's matrix to explore dependency between features
     '''
     # init figure size
-    targ_valids_cat = [list_labels_cat[i] for i in targ_valids]
-    preds_valids_cat = [list_labels_cat[i] for i in preds_valids]
     rcParams['figure.figsize'] = 7, 7
-    df = pd.DataFrame(confusion_matrix(targ_valids_cat, preds_valids_cat, labels = list_labels_cat, normalize = 'true'), index = list_labels_cat, columns= list_labels_cat)
+    df = pd.DataFrame(confusion_matrix(targ_valids, preds_valids, normalize = 'true'), index = classes, columns= classes)
     fig = plt.figure()
     sns.heatmap(df, annot=True, fmt=".2f")
     plt.show()
     # fig.savefig('corr.png')
 
 
+class KNN_weighted:
+    def __init__(self, k):
+        self.k = k
+
+    def fit(self, X, y):
+        self.X_train = X
+        self.y_train = y
+        self.class_freqs = dict(Counter(y))
+        self.num_classes = len(self.class_freqs)
+        self.classes_ = np.unique(y)
+
+    def predict(self, X):
+        y_pred = []
+        for i in range(len(X)):
+            distances = np.sum(np.abs(self.X_train - X[i]), axis=1)
+            sorted_indices = np.argsort(distances)
+            k_nearest_classes = [self.y_train[sorted_indices[j]] for j in range(self.k)]
+            class_weights = [1 / self.class_freqs[k_nearest_classes[j]] for j in range(self.k)]
+            class_probs = dict.fromkeys(self.classes_, 0)
+
+            for j in range(self.k):
+                class_probs[k_nearest_classes[j]] += class_weights[j]
+            y_pred.append(max(class_probs, key=class_probs.get))
+        return np.array(y_pred)
 
 def plot_KNN_space(targ_trains, targ_valids, X_2D):
     '''

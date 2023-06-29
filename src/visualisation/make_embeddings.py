@@ -12,7 +12,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from data.create_variables import create_dls
 
 '''
-In this module: 
+In this module:
 - open_image : ok
 - flatten_batch : creates a list of all flattened images of a batch
 - create_matrix_of_flattened_images : same but for multiple sources
@@ -59,11 +59,11 @@ def create_embeddings(entry_path, model, source, batchsize = 32, test_set = Fals
         learn = Learner(dls, model.encoder)
 #             learner = create_learner(self.entry_path, model.encoder, source_train, False, batchsize = batchsize, size = size, transform = transform)
         dl_set = dls.valid if test_set else dls.train
-        embedding_trains, label = learn.get_preds(dl=dl_set) 
+        embedding_trains, label = learn.get_preds(dl=dl_set)
         n = embedding_trains.shape[0]
         X+= [embedding_trains[j].detach().numpy() for j in range(n)]
         labels+= [label[j].detach().numpy() for j in range(n)]
-        dataset += [k for i in range(n)] 
+        dataset += [k for i in range(n)]
     return X, labels, dataset
 
 def create_filenames_from_dls(entry_path, model, source, batchsize=32):
@@ -71,7 +71,7 @@ def create_filenames_from_dls(entry_path, model, source, batchsize=32):
     for k in source:
         if k == 'matek':
             dls = create_dls(entry_path,[k], siamese_head = False, batchsize = batchsize, size = 15000)
-        else: 
+        else:
             dls = create_dls(entry_path, [k], siamese_head = False, batchsize = batchsize)
         learn = Learner(dls, model.encoder)
         for i in range(len(learn.dls.train_ds)):
