@@ -79,3 +79,21 @@ reports/summary of the results.ods
 src/data/__pycache__/create_variables.cpython-39.pyc
 src/data/__pycache__/siamese_image.cpython-39.pyc
 reports/summary of the results.ods
+models/mixed_sources_trained/barcelona_saint_antoine/siamese8_transform3
+models/mixed_sources_trained/matek_saint_antoine/resnet101_1
+models/mixed_sources_trained/matek_saint_antoine/resnet101_2_transform2
+src/__pycache__/workflow.cpython-37.pyc
+src/__pycache__/worklow.cpython-37.pyc
+src/.ipynb_checkpoints/main-checkpoint.ipynb
+src/.ipynb_checkpoints/workflow-checkpoint.py
+src/data/__pycache__/create_variables.cpython-37.pyc
+src/data/__pycache__/siamese_image.cpython-37.pyc
+src/data/__pycache__/transform_functions.cpython-37.pyc
+src/data/.ipynb_checkpoints/create_variables-checkpoint.py
+src/data/.ipynb_checkpoints/siamese_image-checkpoint.py
+src/data/.ipynb_checkpoints/transform_functions-checkpoint.py
+src/models/.ipynb_checkpoints/create_model-checkpoint.py
+src/models/__pycache__/create_model.cpython-37.pyc
+src/models/__pycache__/encoder_head_model.cpython-37.pyc
+src/models/__pycache__/model_params.cpython-37.pyc
+src/models/__pycache__/siamese_models.cpython-37.pyc
