@@ -1,7 +1,6 @@
 import pickle
 import pandas as pd
 import numpy as np
-from data.siamese_image import SiameseTransform, Siamese2Label, show_batch
 from fastai.vision.all import *
 from sklearn.model_selection import train_test_split
 # from data.transform_functions import transform_color_transfer, transform_resolution, transform_crop
@@ -12,21 +11,6 @@ from data.transform_functions import get_item
 This module creates dataloader of images
 '''
 list_labels_cat = ['basophil', 'eosinophil', 'erythroblast', 'lymphocyte', 'monocyte', 'neutrophil']
-# new_dic = {'Eosinophiles et Basophiles_0': 'eosinophil_and_basophil',
-#            'ERY acido_0': 'ery acido',
-#            'ERY baso_0' : 'ery baso',
-#            'ERY polychro_0' : 'ery polychro',
-#            'LYMPHOCYTES_0' : 'lymphocyte',
-#            'MONOCYTES_0' : 'monocyte',
-#            'Myeloblaste et Blastes_0' : 'myeloblaste_and_blaste',
-#            'MYELOCYTES_0' : 'myelocyte',
-#            'PLASMOCYTES_0': 'plasmocyte',
-#            'PNN et MetaMyelocyte_0' : 'pnn_and_metamyelocyte',
-#            'ProErythro_0' : 'proerythroblaste',
-#            'PROMYELOCYTES_0': 'promyelocyte'}
-# list_labels_cat = []
-# for i,v in new_dic.items():
-#     list_labels_cat.append(v)
 
 
 def create_df(reference_path, source, list_labels_cat):
@@ -52,7 +36,7 @@ def create_df(reference_path, source, list_labels_cat):
     dataframe= dataframe.rename(columns={'image_path': 'name', 'image_class': 'label', 'image_dataset': 'dataset'})
     return dataframe
 
-def create_splits(entry_path, source, df, size, balanced = True, files_to_look_at = None):
+def create_splits(entry_path, source, df, size, balanced = True, df_filename = None, full_evaluation = False):
     '''
     input :
     - entry_path : '../' pour un .ipynb, '' pour un .py
@@ -65,8 +49,30 @@ def create_splits(entry_path, source, df, size, balanced = True, files_to_look_a
     - splits : the indexes of the dataframe rows that will be used by the data loader. splits = index_train, index_test
     '''
 
+
+    if df_filename is not None:
+        df_0 = pd.DataFrame(columns = ['index', 'name', 'label', 'dataset', 'is_valid'])
+        for i in df_filename:
+            file = open(i, 'rb')
+            df_1 = pickle.load(file)
+            df_0 = pd.concat([df_0, df_1], axis = 0)
+
+        df_reduced = df_0
+        if full_evaluation:
+            filename = df_reduced.loc[df_reduced['is_valid'] == False].name.tolist()
+            list_index_tot = df['index'].tolist()
+            list_index_reduced = df.index.tolist()
+            splits_train = df_reduced.loc[df_reduced['is_valid'] == False]['index'].tolist()
+            random.shuffle(list_index_tot) #only for matek
+            splits_test = [list_index_tot[i] for i in range(len(list_index_reduced)) if df.iloc[list_index_reduced[i]]['name'] not in filename][:10000]
+
+        else:
+            splits_train = df_reduced.loc[df_reduced['is_valid'] == False]['index'].tolist()
+            splits_test = df_reduced.loc[df_reduced['is_valid'] == True]['index'].tolist()
+        return splits_train, splits_test
     nb_images = 0
     splits = [], []
+
     for k in range(len(source)):
         # for a given dataset :
         file_splits = open(entry_path + 'references' + '/variables/'+ source[k] +'_splits.obj', 'rb') # train and test splits are stored in a file associated to the dataset
@@ -89,35 +95,18 @@ def create_splits(entry_path, source, df, size, balanced = True, files_to_look_a
                 splits_one_source = res, splits_one_source[1][:size[k]]
 
             else:
-                if files_to_look_at is not None:
-
-
-                    df_to_look_at = df_one_source.loc[df_one_source.name.isin(files_to_look_at)]  #keep only files in files_to_look_at
-                    splits_to_look_at = df_to_look_at.index.tolist()[:size[k]] # the corresponding indexes
-                    res = splits_to_look_at
-                    classes_fine_tuning = df_to_look_at['label'].loc[splits_to_look_at].unique() # the classes in the fine tuning subset. We want to have all the classes of the dataset in this subset.
-
-
-                    # while len(classes_fine_tuning) < len(classes_one_source):
-                    #     random.shuffle(splits_one_source[0])
-                    #     df_one_source = df.loc[splits_one_source[0]]
-                    #     df_to_look_at = df_one_source.loc[df_one_source.name.isin(files_to_look_at)]
-                    #     splits_to_look_at = df_to_look_at.index.tolist()[:size[k]]
-                    #     classes_fine_tuning = df_to_look_at['label'].loc[splits_to_look_at].unique()
-                    #     res = splits_to_look_at
-
-                else:
-                    res = splits_one_source[0][:size[k]] # keep only size[k] images
-                    classes_fine_tuning = df['label'].loc[splits_one_source[0][:size[k]]].unique() # the classes in the fine tuning subset. We want to have all the classes of the dataset in this subset.
-                    while len(classes_fine_tuning) < len(classes_one_source):
-                        random.shuffle(splits_one_source[0])
-                        classes_fine_tuning = df['label'].loc[splits_one_source[0][:size[k]]].unique()
-                        res = splits_one_source[0][:size[k]]
+                res = splits_one_source[0][:size[k]] # keep only size[k] images
+                classes_fine_tuning = df['label'].loc[splits_one_source[0][:size[k]]].unique() # the classes in the fine tuning subset. We want to have all the classes of the dataset in this subset.
+                while len(classes_fine_tuning) < len(classes_one_source):
+                    random.shuffle(splits_one_source[0])
+                    classes_fine_tuning = df['label'].loc[splits_one_source[0][:size[k]]].unique()
+                    res = splits_one_source[0][:size[k]]
             splits_one_source = res, splits_one_source[1][:size[k]]
-        splits = [splits[j] + splits_one_source[j] for j in range(2)] # I add the splits of this dataset in the global split
+        splits = [splits[j] + df.iloc[splits_one_source[j]]['index'].tolist() for j in range(2)]
+        # splits = [splits[j] + splits_one_source[j] for j in range(2)] # I add the splits of this dataset in the global split
         nb_images += len(df.loc[df['dataset'] == source[k]]) # add the total number of images of this dataset
-    return splits
 
+    return splits
 
 class CustomImageDataset():
     '''
@@ -145,13 +134,12 @@ class CustomImageDataset():
             img = get_item(self.df.iloc[idx], self.entry_path) # transformed image, with transform depending on the dataset.
         else:
             img = PILImage.create(self.entry_path + self.name[idx]) # create img without transform
-            img = Resize(224)(img)
+            img = Resize(226)(img)
 
         return img, self.dic_label[self.label[idx]] # the label has to be numerical !
 
     def __len__(self):
         return len(self.df)
-
 
 def create_dataloader_single_image(entry_path, batchsize, df, splits, transform = False):
     '''
@@ -165,10 +153,11 @@ def create_dataloader_single_image(entry_path, batchsize, df, splits, transform 
     - dls : dataloader
     '''
 
-    df = df.iloc[splits[0] + splits[1]]
+    df = df.loc[df['index'].isin(splits[0] + splits[1])]
+    df = df.assign(is_valid = False)
 
-    df = df.assign(is_valid = [i >= len(splits[0]) for i in range(len(splits[0] + splits[1]))]) # I add a column is_valid, which is true for an image in the valid set, and false if not.
-
+    # Set 'is_valid' to True for rows where 'index' is in 'valid_index'
+    df.loc[df['index'].isin(splits[1]), 'is_valid'] = True
     dls = ImageDataLoaders.from_df(df, path = entry_path, bs = batchsize, fn_col='name', label_col='label', valid_col = 'is_valid')
     custom_ds_train = CustomImageDataset(df, entry_path, dls.vocab, transform = transform, valid = False) # to add transforms
     custom_ds_valid = CustomImageDataset(df, entry_path, dls.vocab, transform = transform, valid = True) # to add the transforms
@@ -178,42 +167,24 @@ def create_dataloader_single_image(entry_path, batchsize, df, splits, transform 
 
     return dls
 
-def create_dataloader_pairs(entry_path, batchsize, SiameseClass, splits, df, transform = False, row2label = None):
+def create_dls(entry_path, source, siamese_head, batchsize = 32, size=[0,0,0,0], transform = False, balanced = False, df_filename = None, full_evaluation = False):
     '''
-    input :
-    - entry_path : '../' pour un .ipynb, '' pour un .py
-    - source : source dataset
-    - transform if I want transforms
-    returns :
-    - dls : siamese dataloader
+    returns a dataloader (siamese or not) from the desired dataset
+    warning: if full evaluation is True, we need df_filename to be not None
     '''
-    if row2label is not None:
-        tfm = SiameseClass(splits, df, row2label, entry_path, transform = transform)
-    else:
-        tfm = SiameseClass(splits, df, entry_path, transform = transform)
-    tls = TfmdLists(df, tfm, splits=splits)
-    dls = tls.dataloaders(after_item=[Resize(224), ToTensor],
-                    after_batch=[IntToFloatTensor], bs = batchsize)
-    dls.cuda()
-    return dls
+    source.sort()
+    df_reduced = create_df(entry_path + 'references', source, list_labels_cat) #inutile si df_filename is not None
+    splits = create_splits(entry_path, source, df_reduced, size, balanced = balanced, df_filename = df_filename, full_evaluation = full_evaluation)
 
-def create_dls(entry_path, source, siamese_head, batchsize = 32, size=[0,0,0,0], transform = False, balanced = False, files_to_look_at = None):
-        '''
-        returns a dataloader (siamese or not) from the desired dataset
-        '''
-        source.sort()
-        df = create_df(entry_path + 'references', source, list_labels_cat)
-        splits = create_splits(entry_path, source, df, size, balanced = balanced, files_to_look_at = files_to_look_at)
+    return create_dataloader_single_image(entry_path, batchsize, df_reduced, splits, transform = transform)
 
-        if siamese_head:
-            return create_dataloader_pairs(entry_path, batchsize, SiameseTransform, splits, df, transform = transform)
-        else:
-            return create_dataloader_single_image(entry_path, batchsize, df, splits, transform = transform)
-
-def create_valid_train_test_splits(array_files, array_class, source):
+def create_valid_train_test_splits(reference_path, source, list_labels_cat):
     '''
     create a test split and save it for final evaluation
     '''
+    df = create_df(reference_path, source, list_labels_cat)
+    array_files = df['name'].tolist()
+    array_class = df['label'].tolist()
     mapping_dic = {}
     for i, file in enumerate(array_files):
         mapping_dic[file] = i
@@ -230,3 +201,14 @@ def create_valid_train_test_splits(array_files, array_class, source):
     splits = train_index, valid_index
     file = open('../references/variables/' + source[0] + '_splits.obj', 'wb')
     pickle.dump(splits, file)
+
+def create_df_reduced(entry_path, source, size, balanced = True):
+    df = create_df(entry_path + 'references', source, list_labels_cat)
+    splits = create_splits('../', source, df, size, balanced = balanced)
+    df = df.loc[df['index'].isin(splits[0] + splits[1])]
+    # df = df.iloc[splits[0] + splits[1]]
+
+    df = df.assign(is_valid = [i >= len(splits[0]) for i in range(len(splits[0] + splits[1]))]) # I add a column is_valid, which is true for an image in the valid set, and false if not.
+
+    file = open('../references/variables/dataframes/reduced/' + 'df_'+ source[0] + '_0', 'wb')
+    pickle.dump(df, file)

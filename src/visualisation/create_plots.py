@@ -14,6 +14,11 @@ import seaborn as sns # '0.9.0'
 from data.create_variables import list_labels_cat
 from sklearn.metrics import pairwise_distances
 import matplotlib.font_manager as fm
+import matplotlib
+from fastai.imports import *
+from fastai.torch_core import *
+from fastai.learner import *
+
 
 palette ={"neutrophil": "C1", "monocyte": "C3", "lymphocyte": "C0", "erythroblast": "C5", "eosinophil" : "C2", "basophil": "C4"}
 short_palette = {"neu":"C1", "mon":"C3", "lym":"C0", "ery":"C5", "eos": "C2", "bas":"C4"}
@@ -33,40 +38,17 @@ fm.fontManager.addfont(font_path)
 plt.rcParams['font.family'] = 'Times New Roman Cyr'  # Replace 'YourCustomFont' with the actual font name
 
 
-
-def make_wall(im, labels, order, side=7):
-
-    Nimage = im.shape[0]
-    yside = side
-    xside = 1 + Nimage//side
-
-    res =  np.zeros(250*250*xside*yside*3).reshape(250*xside, 250*yside, 3)
-
-    for i in range(Nimage):
-        img = np.array(im[[order[i]]][0,:,:,:])
-        font = cv2.FONT_HERSHEY_PLAIN
-        cv2.putText(img,labels[[order[i]]][0],(10,250), font, 2,(0,0,0),1)
-        norm = 255
-        res[250*(i//side):250*(i//side)+250, 250*(i%side):250*(i%side)+250] = img/norm
-    return(res)
-
-def make_walls(res, Nimages, batch, valids, valids_class, training_source):
-    Ninit = 1000
-    Ncluster = 8
-    sc = SpectralClustering(Ncluster, affinity='precomputed', n_init=Ninit, assign_labels='kmeans')
-    a = sc.fit_predict(res)
-    indiceCluster = [np.arange(Nimages)[a==i] for i in range(Ncluster)]
-#     os.makedirs("matek_walls")
-    # allIm = np.array([plt.imread('../../Documents/These/' + x)[:,:,:3] for x in valids[(batch-1)*Nimages : batch*Nimages]])
-    img_list = [np.array(Image.open('../../Documents/These/'+ fname).convert('RGB').resize((250, 250))) for fname in valids[(batch-1)*Nimages : batch*Nimages]]
-    allIm = np.array(img_list)
-    for i in range(Ncluster):
-        print("Walls: " + str(i+1) + "/" + str(Ncluster), end = '\r')
-        distanceIntraCluster =  np.mean(res[np.ix_(indiceCluster[i], indiceCluster[i])], axis=0)
-        order = np.flip(np.argsort(distanceIntraCluster))
-
-        newWall = make_wall(allIm[indiceCluster[i]], valids_class[indiceCluster[i]+Nimages*(batch-1)], order)
-        plt.imsave(arr= newWall, fname = 'reports/walls/' + training_source + "_training/batch_"+ str(batch)+ "/cluster" + str(i) + ".png")
+def show_batch(dls, siamese_head):
+    if siamese_head:
+        b = dls.one_batch()
+        show_batch_siamese(b, None, None)
+    else:
+        b = dls.one_batch()[0] # [0] to have the images, [1] to have the labels
+        fig, axes = plt.subplots(5,5, figsize = ((10,10)))
+        for i, ax in enumerate(axes.flat):
+            ax.imshow(b[i].permute(2,1,0).to('cpu'))
+            ax.axis('off')
+    return b
 
 
 def project_2D(X,labels,method):
@@ -116,18 +98,43 @@ def create_df_of_2D_embeddings_info(X, labels, method, dataset, filenames):
 def scatter_plot_embeddings(X, labels, method, dataset, filenames, display_classes = True):
     data = create_df_of_2D_embeddings_info(X, labels, method, dataset, filenames)
     rcParams['figure.figsize'] = 10, 10
-
+    # matplotlib.rcParams.update({'font.size': 20})
+    # matplotlib.rcParams.update({'legend.title_fontsize' : 20})
+    marker_size = 70
+    data['marker_size'] = marker_size
     if display_classes:
-        # les datasets sont représentés par des marqueurs différents
-        ax = sns.scatterplot(data=data, x='x', y='y', style='dataset', hue = 'classes', palette = palette)
+        ax = sns.scatterplot(data=data, x='x', y='y', style='dataset', hue = 'classes', palette = palette, s = marker_size)
     else:
         # les datasets sont représentés par des couleurs différentes
         palette_dataset = {'barcelona': "C3", 'saint_antoine': "C7", "matek": "C4", "rabin": "C5"}
-        ax = sns.scatterplot(data=data, x='x', y='y', hue = 'dataset', palette = palette_dataset)
+        # ax = sns.scatterplot(data=data, x='x', y='y', hue = 'dataset', palette = palette_dataset)
+        ax = sns.scatterplot(data=data, x='x', y='y', hue = 'dataset',s = marker_size)
     plt.tight_layout()
+    # legend = ax.legend()
+
     ax.axes.get_xaxis().set_visible(False)
     ax.axes.get_yaxis().set_visible(False)
-    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1), fontsize = 20)
+    # sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+    legend = ax.legend(loc = 1)
+    # legend.set_bbox_to_anchor((1,1))
+    for i in range(1, 7):
+        legend.legendHandles[i]._sizes = [100]
+    for i in range(8,10):
+        legend.legendHandles[i]._sizes = [200]
+   # Set font size for specific legend labels (Dataset and classes)
+    for label in legend.texts:
+        if label.get_text() in ['dataset', 'classes']:
+            label.set_fontsize(30)  # You can adjust the font size here
+            if label.get_text() == 'dataset':
+                label.set_text('Dataset')
+            else :
+                label.set_text('Classes')
+        else:
+            label.set_fontsize(20)
+    # handles, labels = ax.get_legend_handles_labels()
+    # for handle in handles:
+    #     print(handle)
+    #     handle.set_sizes([200])
     return data
 
 
@@ -173,33 +180,56 @@ def show_histo_of_pred_tensor(preds_tensor):
         sns.barplot(df, ax = ax, palette = short_palette)
         ax.set
 
-def plot_confusion_matrix(cm, list_labels_cat, normalize):
-        cmap = "Blues"
-        title = 'Confusion matrix'
-        norm_dec:int=2  # Decimal places for normalized occurrences
-        plot_txt:bool=True # Display occurrence in matrix
-        normalize = normalize
-        fig = plt.figure()
-        plt.imshow(cm, interpolation='nearest', cmap=cmap)
-        plt.title(title, fontsize = 20)
-        tick_marks = np.arange(len(list_labels_cat))
-        plt.xticks(tick_marks, list_labels_cat, rotation=90, fontsize=20)
-        plt.yticks(tick_marks, list_labels_cat, rotation=0, fontsize=20)
 
-        if plot_txt:
-            thresh = cm.max() / 2.
-            for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-                coeff = f'{cm[i, j]:.{norm_dec}f}' if normalize else f'{cm[i, j]}'
-                plt.text(j, i, coeff, horizontalalignment="center", verticalalignment="center", color="white"
-                         if cm[i, j] > thresh else "black", fontsize = 15)
+def plot_confusion_matrix(cm, cm_norm, list_labels_cat):
+    cmap = "Blues"
+    title = 'Confusion matrix'
+    norm_dec:int=2  # Decimal places for normalized occurrences
+    plot_txt:bool=True # Display occurrence in matrix
+    fig = plt.figure()
+    plt.imshow(cm_norm, interpolation='nearest', cmap=cmap)
+    plt.title(title, fontsize = 20)
+    tick_marks = np.arange(len(list_labels_cat))
+    plt.xticks(tick_marks, list_labels_cat, rotation=90, fontsize=20)
+    plt.yticks(tick_marks, list_labels_cat, rotation=0, fontsize=20)
 
-        ax = fig.gca()
-        ax.set_ylim(len(list_labels_cat)-.5,-.5)
+    if plot_txt:
+        thresh = cm_norm.max() / 2.
+        for i, j in itertools.product(range(cm_norm.shape[0]), range(cm_norm.shape[1])):
+            coeff_norm = f'{cm_norm[i, j]:.{norm_dec}f}'
+            coeff = f'{cm[i, j]}'
+            plt.text(j, i, coeff_norm, horizontalalignment="center", verticalalignment="center",
+                     color="white" if cm_norm[i, j] > thresh else "black", fontsize=20)
+            plt.text(j, i+0.3, coeff, horizontalalignment="center", verticalalignment="center",
+                     color="white" if cm_norm[i, j] > thresh else "black", fontsize=15)
 
-        plt.tight_layout()
-        plt.ylabel('Actual')
-        plt.xlabel('Predicted')
-        plt.grid(False)
-        plt.tight_layout()
-        plt.savefig('confusion_matrix.png')
-        plt.show()
+    ax = fig.gca()
+    ax.set_ylim(len(list_labels_cat)-.5,-.5)
+
+    plt.tight_layout()
+    plt.ylabel('Actual')
+    plt.xlabel('Predicted')
+    plt.grid(False)
+    plt.tight_layout()
+    #plt.savefig('confusion_matrix.png')
+    plt.show()
+
+@patch
+@delegates(subplots)
+def plot_metrics(self: Recorder, nrows=None, ncols=None, figsize=None, **kwargs):
+    metrics = np.stack(self.values)
+    names = self.metric_names[1:-1]
+    n = len(names) - 1
+    if nrows is None and ncols is None:
+        nrows = int(math.sqrt(n))
+        ncols = int(np.ceil(n / nrows))
+    elif nrows is None: nrows = int(np.ceil(n / ncols))
+    elif ncols is None: ncols = int(np.ceil(n / nrows))
+    figsize = figsize or (ncols * 6, nrows * 4)
+    fig, axs = subplots(nrows, ncols, figsize=figsize, **kwargs)
+    axs = [ax if i < n else ax.set_axis_off() for i, ax in enumerate(axs.flatten())][:n]
+    for i, (name, ax) in enumerate(zip(names, [axs[0]] + axs)):
+        ax.plot(metrics[:, i], color='#1f77b4' if i == 0 else '#ff7f0e', label='valid' if i > 0 else 'train')
+        ax.set_title(name if i > 1 else 'losses')
+        ax.legend(loc='best')
+    plt.show()
