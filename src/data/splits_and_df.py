@@ -104,13 +104,13 @@ class SplitDataframe():
         for k in range(len(self.source)): # Loop through each data source
 
             if self.fine_tune: # Load a reduced dataframe for fine-tuning with <=100 samples 
-                df_one_source = pd.read_csv(self.reference_path + '/variables/dataframes/reduced/df_' + self.source[k] + '_0.csv')
+                df_one_source = pd.read_csv(self.reference_path + '/variables/dataframes/for_fine_tune/df_' + self.source[k] + '_0.csv')
                 new_split0 = df_one_source.index[df_one_source['is_valid'] == False].tolist()
                 new_split1 = df_one_source.index[df_one_source['is_valid'] == True].tolist()
                 splits_one_source = new_split0, new_split1
 
             elif self.full_evaluation: # Load all samples not used for fine-tuning to evaluate the model
-                df_one_source_train = pd.read_csv(self.reference_path + '/variables/dataframes/reduced/df_' + self.source[k] + '_0.csv')
+                df_one_source_train = pd.read_csv(self.reference_path + '/variables/dataframes/for_fine_tune/df_' + self.source[k] + '_0.csv')
                 new_split0 = df_one_source_train.loc[df_one_source_train['is_valid'] == False]['Unnamed: 0'].tolist()
 
                 values = {i for i in new_split0}
