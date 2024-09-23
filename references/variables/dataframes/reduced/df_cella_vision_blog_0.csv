@@ -1,0 +1,21 @@
+,Unnamed: 0,index,name,label,dataset,is_valid
+0,48,241853,cella_vision_blog/monocyte/022.bmp,monocyte,cella_vision_blog,False
+1,40,241845,cella_vision_blog/monocyte/012.bmp,monocyte,cella_vision_blog,False
+2,21,241826,cella_vision_blog/lymphocyte/033.bmp,lymphocyte,cella_vision_blog,False
+3,29,241834,cella_vision_blog/lymphocyte/094.bmp,lymphocyte,cella_vision_blog,False
+4,97,241902,cella_vision_blog/neutrophil/020.bmp,neutrophil,cella_vision_blog,False
+5,86,241891,cella_vision_blog/neutrophil/003.bmp,neutrophil,cella_vision_blog,False
+6,62,241867,cella_vision_blog/eosinophil/007.bmp,eosinophil,cella_vision_blog,False
+7,61,241866,cella_vision_blog/eosinophil/085.bmp,eosinophil,cella_vision_blog,False
+8,54,241859,cella_vision_blog/basophil/090.bmp,basophil,cella_vision_blog,False
+9,52,241857,cella_vision_blog/basophil/089.bmp,basophil,cella_vision_blog,False
+10,24,241829,cella_vision_blog/lymphocyte/010.bmp,lymphocyte,cella_vision_blog,True
+11,85,241890,cella_vision_blog/neutrophil/075.bmp,neutrophil,cella_vision_blog,True
+12,67,241872,cella_vision_blog/neutrophil/025.bmp,neutrophil,cella_vision_blog,True
+13,63,241868,cella_vision_blog/eosinophil/095.bmp,eosinophil,cella_vision_blog,True
+14,18,241823,cella_vision_blog/lymphocyte/067.bmp,lymphocyte,cella_vision_blog,True
+15,66,241871,cella_vision_blog/eosinophil/084.bmp,eosinophil,cella_vision_blog,True
+16,13,241818,cella_vision_blog/lymphocyte/052.bmp,lymphocyte,cella_vision_blog,True
+17,57,241862,cella_vision_blog/eosinophil/072.bmp,eosinophil,cella_vision_blog,True
+18,55,241860,cella_vision_blog/eosinophil/097.bmp,eosinophil,cella_vision_blog,True
+19,8,241813,cella_vision_blog/lymphocyte/048.bmp,lymphocyte,cella_vision_blog,True
