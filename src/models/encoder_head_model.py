@@ -1,17 +1,8 @@
-
 import torch
 import torch.nn as nn
 from fastai.vision.all import Flatten
 import torchvision
 from transformers import ViTFeatureExtractor, ViTForImageClassification
-
-'''
-2 types of models:
-ModelFromResnet:
-- we add a linear layer at the end of the encoder
-Model :
-- we take 2 parts of a model (encoder, head) and make a full model, with siamese_head as parameter if siamese model
-'''
 
 class Encoder(nn.Module):
     def __init__(self, body, architecture):
@@ -32,7 +23,6 @@ class Encoder(nn.Module):
         if architecture == 'vit':
             self.linear_layer = nn.Linear(768, 256)
             self.feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224-in21k')
-
     def forward(self, x):
         if self.architecture == 'vit':
             model_layers = list(self.body.children())
@@ -42,16 +32,16 @@ class Encoder(nn.Module):
             outputs = cut_model(**inputs)
             sequence_output = outputs[0]
             out = self.linear_layer(sequence_output[:, 0, :])
-            return out
+            return out 
         else:
             x = self.body(x)
             if isinstance(x, torchvision.models.inception.InceptionOutputs):
                 out = self.linear_layer(x.logits)
-                return out
+                return out           
             else:
                 out = self.linear_layer(x)
                 return out
-
+    
 class ModelFromArchitecture(nn.Module):
     def __init__(self,body, head, architecture):
         super(ModelFromArchitecture, self).__init__()
@@ -61,14 +51,26 @@ class ModelFromArchitecture(nn.Module):
         self.siamese_head = False
     def forward(self, x):
         out = self.encoder(x)
-        return self.head(out)
+        return self.head(out)    
 
-
+# if I don't want to add linear layer at the end of the model:
 class Model(torch.nn.Module):
-    def __init__(self, encoder, head, siamese_head):
+    def __init__(self, encoder, head):
         super(Model, self).__init__()
         self.siamese_head = siamese_head
         self.encoder, self.head = encoder, head
+    def forward(self, x):
+        x = self.encoder(x)
+        return self.head(x)
+
+class ModelFromEfficientNet(torch.nn.Module):
+    def __init__(self, body, head):
+        super(ModelFromEfficientNet, self).__init__()
+        self.body, self.head = body, head
+        self.siamese_head = False
+        self.encoder = nn.Sequential(
+            self.body,
+            nn.Linear(1000, 256))
     def forward(self, x):
         x = self.encoder(x)
         return self.head(x)
