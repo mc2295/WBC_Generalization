@@ -10,7 +10,6 @@ def create_model(architecture, n_out):
         body = EfficientNet.from_pretrained('efficientnet-b0')
     if architecture == 'resnet':   
         body = create_body(xresnet101(), cut=-4)
-        # body = create_body(xresnet101(), cut=-1) # 2048 last layer
     if architecture == 'inception':
         body = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pretrained=True)
     if architecture == 'vgg':
@@ -18,6 +17,6 @@ def create_model(architecture, n_out):
         body = create_body(vgg_model, cut=-2)
     if architecture == 'vit':
         body = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224-in21k')
-    head = create_head(128, n_out, ps=0.5)[2:] # if I want to reuse olf models
+    head = create_head(128, n_out, ps=0.5)[2:] 
     return ModelFromArchitecture(body, head, architecture) 
 

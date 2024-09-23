@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 
-# def create_matrix_of_flattened_images(entry_path, batchsize, source, transform):
 def create_matrix_of_flattened_images(valid_loader):
     flattened_vector = []
     datasets = []

@@ -38,7 +38,7 @@ def plot_confusion_matrix(cm, cm_norm, list_labels_cat):
     plt.show(block=False)
 
 
-def show_confusion_matrix(pred_label, real_label, list_labels, plot_matrix):
+def create_confusion_matrix(pred_label, real_label, list_labels, plot_matrix):
     cm = confusion_matrix(real_label, pred_label[:len(real_label)],  labels = list_labels)
     
     cm_norm_recall = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]

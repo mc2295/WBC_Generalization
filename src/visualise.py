@@ -2,7 +2,7 @@ from data.main import train_loader, valid_loader
 from tqdm import tqdm
 from torch.autograd import Variable
 import config
-from visualisation.confusion_matrix import show_confusion_matrix
+from visualisation.confusion_matrix import create_confusion_matrix
 from visualisation.scatter_plot import scatter_plot, visualise_images_in_region
 from visualisation.flatten_images import create_matrix_of_flattened_images
 from visualisation.show_image_preds import show_images_with_preds, show_histo_of_pred_tensor
@@ -49,8 +49,8 @@ preds_proba = np.stack(preds_proba)
 
 print('accuracy :', accuracy_score(labels, preds_label))
       
-if config.show_confusion: 
-    recall_per_class, precision_per_class, acc = show_confusion_matrix(preds_label, labels, config.list_labels_cat, config.plot_confusion)
+if config.create_confusion: 
+    recall_per_class, precision_per_class, acc = create_confusion_matrix(preds_label, labels, config.list_labels_cat, config.plot_confusion)
 
 if config.show_flattened_images: 
     X, dataset_flattened = create_matrix_of_flattened_images(valid_loader)

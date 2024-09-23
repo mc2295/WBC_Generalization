@@ -21,13 +21,13 @@ epoch = 50
 lr = 7e-5
 
 # Visualisation of the results
-show_confusion = False
-plot_confusion = False
-scatter_embeddings = False
-show_group_from_region = False
-show_flattened_images = False
-bootstrap = True
-show_proba_per_image = False
-show_auc_per_class = True
-show_auc_all = False
-method = 'UMAP'
+create_confusion = False  # Set to True to generate the confusion matrix, along with accuracy, recall, and precision per class.
+plot_confusion = False     # Set to True to visualize the confusion matrix.
+scatter_embeddings = False  # Set to True to create a scatter plot of the model's embeddings.
+show_group_from_region = False  # Set to True to display cells corresponding to a specific region in the scatter plot of embeddings.
+show_flattened_images = False  # Set to True to create a scatter plot of flattened images.
+bootstrap = True            # Set to True to perform bootstrap analysis on predictions.
+show_proba_per_image = False  # Set to True to display a histogram of predicted probabilities for each image.
+show_auc_per_class = True   # Set to True to display the Precision-Recall curve for each class in the dataset.
+show_auc_all = False        # Set to True to display all Precision-Recall curves for all datasets.
+method = 'UMAP'             # Method used for dimensionality reduction (e.g., UMAP or t-SNE).

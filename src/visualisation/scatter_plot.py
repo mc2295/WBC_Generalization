@@ -11,7 +11,7 @@ from sklearn.decomposition import TruncatedSVD, PCA, FastICA
 
 font_path = '../references/variables/times_new_roman.ttf'  
 fm.fontManager.addfont(font_path)  
-plt.rcParams['font.family'] = 'Times New Roman Cyr'  # Replace 'YourCustomFont' with the actual font name
+plt.rcParams['font.family'] = 'Times New Roman Cyr' 
 palette ={"neutrophil": "C1", "monocyte": "C3", "lymphocyte": "C0", "erythroblast": "C5", "eosinophil" : "C2", "basophil": "C4"}
 
 def project_2D(X,labels,method):
@@ -40,7 +40,7 @@ def project_2D(X,labels,method):
 def create_df_of_2D_embeddings_info(X, labels, method, dataset, filenames):
     n = len(labels)
     if n > 0:
-        ## on regarde les embeddings des images par un modèle
+        ## To scatter plot embeddings
 
         X_proj = project_2D(X, labels, method)
         data = pd.DataFrame(
@@ -50,7 +50,7 @@ def create_df_of_2D_embeddings_info(X, labels, method, dataset, filenames):
             classes = labels,
             names = filenames))
     else: 
-        ## on regarde les images flattened 
+        ## To scatter plot flattened images
         X_proj = project_2D(X, dataset, method)
         data = pd.DataFrame(
             dict(x=X_proj[:,0],
@@ -63,26 +63,20 @@ def scatter_plot(X, labels, method, dataset, filenames,  name_fig, display_class
     data = create_df_of_2D_embeddings_info(X, labels, method, dataset, filenames)
     rcParams['figure.figsize'] = 10, 10
     matplotlib.rcParams.update({'font.size': 20})
-    # matplotlib.rcParams.update({'legend.title_fontsize' : 20})
     marker_size = 10
     data['marker_size'] = marker_size
     fig, ax = plt.subplots(1,1)
     if display_classes:
-        # ax = sns.scatterplot(data=data, x='x', y='y', style='dataset', hue = 'classes', palette = palette, s = marker_size)
-        # ax = sns.scatterplot(data=data, x='x', y='y', hue = 'classes', palette = palette, s = marker_size)
         ax = sns.scatterplot(data=data, x='x', y='y', hue = 'classes', s = marker_size)
     else:
-        # les datasets sont représentés par des couleurs différentes
-        palette_dataset = {'barcelona': "C3", 'saint_antoine': "C7", "matek": "C4", "rabin": "C5"}
-        # ax = sns.scatterplot(data=data, x='x', y='y', hue = 'dataset', palette = palette_dataset)
         ax = sns.scatterplot(data=data, x='x', y='y', hue = 'dataset',s = marker_size)
     plt.tight_layout()
     fig.savefig(name_fig)
     return data
+
 def visualise_images_in_region(entry_path, data, cell_class, x_region, y_region):
     source_mask = data.classes.isin(cell_class)
     group_class = data.loc[source_mask]
-    # group_class = data
     group = group_class.loc[(group_class['x']>(x_region[0]))&(group_class['x']<(x_region[1]))
                             &(group_class['y']>(y_region[0]))&(group_class['y']<(y_region[1]))]
     fig, axes = plt.subplots(5,5, figsize = ((10,10)))

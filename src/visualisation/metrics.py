@@ -24,7 +24,6 @@ def get_bootstrap_confidence_interval(y_true, y_pred, source, vocab,
     for sublist_true, sublist_pred in zip(y_true_copy, y_pred_copy): 
         np_y_true = np.asarray(sublist_true)
         np_y_pred = np.asarray(sublist_pred)
-        # main_results.append([m(sublist_true, sublist_pred) for m in metric_function_list])
 
         # Perform `draw_number` draw with replacement of the sample
         # and compute the metrics at each time

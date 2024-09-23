@@ -52,25 +52,3 @@ class ModelFromArchitecture(nn.Module):
     def forward(self, x):
         out = self.encoder(x)
         return self.head(out)    
-
-# if I don't want to add linear layer at the end of the model:
-class Model(torch.nn.Module):
-    def __init__(self, encoder, head):
-        super(Model, self).__init__()
-        self.siamese_head = siamese_head
-        self.encoder, self.head = encoder, head
-    def forward(self, x):
-        x = self.encoder(x)
-        return self.head(x)
-
-class ModelFromEfficientNet(torch.nn.Module):
-    def __init__(self, body, head):
-        super(ModelFromEfficientNet, self).__init__()
-        self.body, self.head = body, head
-        self.siamese_head = False
-        self.encoder = nn.Sequential(
-            self.body,
-            nn.Linear(1000, 256))
-    def forward(self, x):
-        x = self.encoder(x)
-        return self.head(x)
