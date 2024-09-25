@@ -19,7 +19,7 @@ To install the project dependencies, run:
 pip install -r requirements.txt
 ```
 ## Datasets
-The datasets were not included in this Github but are all publicly available. You can find references in the source paper, Table 1. In order to load them in the right format, please have a look at the [data/README.md](data/README.md).
+The datasets were not included in this Github but are all publicly available. You can find references in [data/datasets_links.csv](data/datasets_links.csv) In order to load them in the right format, please have a look at the [data/README](data/README.md).
 
 ## Configuration
 
