@@ -3,7 +3,7 @@ device = 'cuda'
 # create loader
 list_labels_cat = ['basophil', 'eosinophil', 'erythroblast', 'lymphocyte', 'monocyte', 'neutrophil']
 reference_path = '../references'
-source = ['matek', 'rabin','bccd', 'tianjin_reviewed']
+source = ['barcelona', 'rabin','bccd']
 size = [1000 for i in range(len(source))]
 balanced = False
 transform = True
